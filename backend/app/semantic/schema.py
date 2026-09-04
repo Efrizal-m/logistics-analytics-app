@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from datetime import date
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -153,6 +154,9 @@ class MetricInfo(BaseModel):
     label: str
     definition: str
     format: str
+    #: Which way is good for this metric - None when a count is neither good
+    #: nor bad. Drives the UI's health marker; never inferred client-side.
+    direction: Literal["up", "down"] | None = None
 
 
 class DimensionInfo(BaseModel):

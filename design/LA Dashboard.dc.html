@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<script src="la-tokens.js"></script>
+<script src="la-data.js"></script>
+<script src="chart-svg.js"></script>
+</helmet>
+
+<div class="la" data-theme="{{ theme }}" style="width:100%; font-size:13px; line-height:1.5; -webkit-font-smoothing:antialiased;">
+  <div style="max-width:1180px; margin:0 auto; padding:{{ padY }};">
+
+    <!-- ── masthead ─────────────────────────────────────────────── -->
+    <header style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; padding-bottom:11px; border-bottom:1px solid var(--line-2);">
+      <div>
+        <h1 style="font-size:23px; letter-spacing:0.02em; text-transform:uppercase;">Logistics Analytics</h1>
+        <p style="margin-top:3px; font-family:var(--font-m); font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); font-variant-numeric:tabular-nums;">12 metrics · orders 2025-01-01 → 2025-12-30</p>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div role="tablist" style="display:inline-flex; border:1px solid var(--line-2);">
+          <button role="tab" aria-selected="true" class="la-tab" style="min-height:32px; padding:0 15px; border:0; background:var(--accent); color:var(--on-accent); font-family:var(--font-h); font-weight:600; font-size:13.5px; letter-spacing:0.03em;">Dashboard</button>
+          <button role="tab" aria-selected="false" class="la-tab" style="min-height:32px; padding:0 15px; border:0; border-left:1px solid var(--line-2); background:transparent; color:var(--muted); font-family:var(--font-h); font-weight:600; font-size:13.5px; letter-spacing:0.03em;">Ask a question</button>
+        </div>
+        <button type="button" onClick="{{ toggleTheme }}" class="la-ibtn" aria-label="{{ themeLabel }}" style="display:flex; align-items:center; justify-content:center; gap:6px; min-height:32px; height:32px; padding:0 10px; border:1px solid var(--line-2); background:transparent; color:var(--muted); font-family:var(--font-m); font-size:10px; letter-spacing:0.08em; text-transform:uppercase;">
+          {{ themeIcon }}<span>{{ themeWord }}</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── failure state ────────────────────────────────────────── -->
+    <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+      <section style="margin-top:24px;">
+        <div class="la-bp" style="border:1px solid var(--line-2); padding:16px 18px 15px;">
+          <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+          <div style="display:flex; align-items:center; gap:7px;">
+            <span style="width:6px; height:6px; background:var(--bad); display:block;"></span>
+            <span style="font-family:var(--font-m); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--bad-text);">No connection to the API</span>
+          </div>
+          <h2 style="font-size:21px; margin-top:9px;">Nothing on this page could be loaded.</h2>
+          <p style="margin-top:6px; font-size:13px; line-height:1.55; color:var(--muted); max-width:74ch; text-wrap:pretty;">Every figure here is read from the API at <code style="font-family:var(--font-m); font-size:12px; color:var(--text);">VITE_API_BASE_URL</code>. The request failed with <code style="font-family:var(--font-m); font-size:12px; color:var(--text);">Failed to fetch</code>, which means the browser could not open a connection at all — so this is a setup or network problem, not a bad query.</p>
+
+          <div style="margin-top:14px; border-top:1px solid var(--line);">
+            <div style="font-family:var(--font-m); font-size:9.5px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--faint); padding:9px 0 5px;">What to check</div>
+            <div style="display:grid; grid-template-columns:20px 1fr; gap:4px 10px; align-items:baseline;">
+              <span style="font-family:var(--font-m); font-size:11px; color:var(--accent-text);">01</span>
+              <span style="font-size:12.5px; color:var(--text);">The backend is running — <code style="font-family:var(--font-m); font-size:11.5px; color:var(--muted);">uvicorn app.main:app --reload</code></span>
+              <span style="font-family:var(--font-m); font-size:11px; color:var(--accent-text);">02</span>
+              <span style="font-size:12.5px; color:var(--text);"><code style="font-family:var(--font-m); font-size:11.5px; color:var(--muted);">VITE_API_BASE_URL</code> points at it — currently <code style="font-family:var(--font-m); font-size:11.5px; color:var(--muted);">http://localhost:8000</code></span>
+              <span style="font-family:var(--font-m); font-size:11px; color:var(--accent-text);">03</span>
+              <span style="font-size:12.5px; color:var(--text);">The dev server was restarted after <code style="font-family:var(--font-m); font-size:11.5px; color:var(--muted);">.env</code> changed</span>
+            </div>
+          </div>
+
+          <div style="margin-top:15px; padding-top:13px; border-top:1px solid var(--line); display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <button type="button" style="min-height:32px; padding:0 16px; border:1px solid var(--accent); background:var(--accent); color:var(--on-accent); font-family:var(--font-h); font-weight:600; font-size:13.5px; letter-spacing:0.03em;">Retry</button>
+            <button type="button" class="la-ibtn" style="min-height:32px; padding:0 14px; border:1px solid var(--line-2); background:transparent; color:var(--muted); font-family:var(--font-h); font-weight:600; font-size:13.5px; letter-spacing:0.03em;">Copy error details</button>
+            <span style="margin-left:auto; font-family:var(--font-m); font-size:10px; letter-spacing:0.06em; color:var(--faint); font-variant-numeric:tabular-nums;">GET /api/kpis · /api/schema · /api/chart ×4 · 14:02:31</span>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- ── key figures ──────────────────────────────────────────── -->
+    <section style="margin-top:24px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:8px;">
+        <h2 style="font-family:var(--font-m); font-size:10px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint);">Key figures</h2>
+        <span style="font-family:var(--font-m); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--faint); font-variant-numeric:tabular-nums;">{{ figuresNote }}</span>
+      </div>
+
+      <div class="la-kpiband" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 190px), 1fr)); border-bottom:1px solid var(--line-2);">
+        <sc-for list="{{ cells }}" as="k" hint-placeholder-count="5">
+          <div class="la-kpicell" style="border-top:1px solid var(--line-2); padding:12px 15px 11px; display:flex; flex-direction:column;">
+            <div style="display:flex; align-items:flex-start; gap:6px; min-height:20px;">
+              <span style="font-size:12px; font-weight:500; color:var(--muted); line-height:1.3;">{{ k.label }}</span>
+              <button type="button" onClick="{{ k.onInfo }}" aria-expanded="{{ k.open }}" aria-label="{{ k.aria }}" class="la-ibtn" style="{{ k.infoStyle }}"><span style="{{ k.infoInner }}">i</span></button>
+            </div>
+
+            <div style="margin-top:5px; display:flex; align-items:baseline; gap:5px; min-height:44px;">
+              <span style="{{ k.numStyle }}">{{ k.main }}</span>
+              <span style="font-family:var(--font-m); font-size:14px; font-weight:500; color:var(--muted);">{{ k.unit }}</span>
+            </div>
+
+            <div style="min-height:15px; font-family:var(--font-m); font-size:10px; color:var(--faint); font-variant-numeric:tabular-nums;">{{ k.sample }}</div>
+
+            <div style="margin-top:9px; padding-top:9px; border-top:1px solid var(--line); display:flex; align-items:center; gap:9px; min-height:32px;">
+              {{ k.spark }}
+              <span style="font-family:var(--font-m); font-size:10px; letter-spacing:0.02em; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;">{{ k.delta }}</span>
+            </div>
+            <div style="min-height:15px; display:flex; align-items:center; gap:5px;">
+              <sc-if value="{{ k.warn }}" hint-placeholder-val="{{ false }}">
+                <span style="width:5px; height:5px; background:var(--warn); display:block; flex:none;"></span>
+                <span style="font-family:var(--font-m); font-size:9.5px; letter-spacing:0.04em; color:var(--warn-text); font-variant-numeric:tabular-nums;">{{ k.warnText }}</span>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ defOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="border-bottom:1px solid var(--line-2); background:var(--accent-tint); padding:11px 15px 12px; display:flex; gap:14px; align-items:flex-start;">
+          <div style="font-family:var(--font-m); font-size:9.5px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent-text); width:150px; flex:none; padding-top:2px;">{{ defLabel }}</div>
+          <p style="flex:1; font-size:12.5px; line-height:1.55; color:var(--text); max-width:92ch; text-wrap:pretty;">{{ defText }}</p>
+          <button type="button" onClick="{{ closeDef }}" aria-label="Close definition" class="la-ibtn" style="width:32px; height:32px; flex:none; margin:-6px -6px 0 0; display:flex; align-items:center; justify-content:center; background:transparent; border:1px solid transparent; color:var(--accent-text); font-family:var(--font-m); font-size:14px; line-height:1;">×</button>
+        </div>
+      </sc-if>
+    </section>
+
+    <!-- ── charts ───────────────────────────────────────────────── -->
+    <section style="margin-top:24px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:8px;">
+        <h2 style="font-family:var(--font-m); font-size:10px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint);">Charts</h2>
+        <span style="font-family:var(--font-m); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--faint); font-variant-numeric:tabular-nums;">{{ chartsNote }}</span>
+      </div>
+
+      <div ref="{{ gridRef }}" style="display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(min(100%, 528px), 1fr));">
+        <sc-for list="{{ chartCards }}" as="c" hint-placeholder-count="4">
+          <div class="la-bp" style="border:1px solid var(--line-2); display:flex; flex-direction:column; min-width:0;">
+            <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+
+            <div style="padding:13px 14px 10px;">
+              <div style="font-family:var(--font-m); font-size:9.5px; font-weight:600; letter-spacing:0.13em; text-transform:uppercase; color:var(--accent-text);">{{ c.type }}</div>
+              <h3 style="font-size:17.5px; margin-top:4px;">{{ c.title }}</h3>
+              <p style="margin-top:5px; font-size:12px; line-height:1.45; color:var(--muted); max-width:56ch; text-wrap:pretty;">{{ c.why }}</p>
+            </div>
+
+            <div style="padding:0 14px 10px; overflow:hidden;">{{ c.el }}</div>
+
+            <button type="button" onClick="{{ c.onToggle }}" aria-expanded="{{ c.open }}" class="la-strip" style="margin-top:auto; display:flex; align-items:center; gap:9px; width:100%; min-height:32px; padding:0 14px; background:transparent; border:0; border-top:1px solid var(--line-2); text-align:left; color:var(--muted);">
+              <span style="display:flex; align-items:center; justify-content:center; width:15px; height:15px; flex:none; border:1px solid var(--line-2); font-family:var(--font-m); font-size:11px; line-height:1; color:var(--accent-text);">{{ c.sign }}</span>
+              <span style="font-family:var(--font-m); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent-text);">Plan</span>
+              <span style="font-family:var(--font-m); font-size:10px; letter-spacing:0.02em; color:var(--faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ c.plan }}</span>
+              <span class="la-cta" style="margin-left:auto; font-family:var(--font-m); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--faint); white-space:nowrap;">{{ c.cta }}</span>
+            </button>
+
+            <sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:12px 14px 14px; border-top:1px solid var(--line);">
+                <dc-import name="LA Plan" plan="{{ c.planObj }}" open-subs="sql" hint-size="100%,300px"></dc-import>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- ── definitions ──────────────────────────────────────────── -->
+    <section style="margin-top:24px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:8px;">
+        <h2 style="font-family:var(--font-m); font-size:10px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint);">Definitions behind these figures</h2>
+        <span style="font-family:var(--font-m); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--faint);">{{ defsNote }}</span>
+      </div>
+      <sc-if value="{{ isReady }}" hint-placeholder-val="{{ true }}">
+        <div class="la-bp" style="border:1px solid var(--line-2); padding:14px 16px 15px;">
+          <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+          <dc-import name="LA Plan" plan="{{ kpiPlan }}" open-subs="{{ kpiSubs }}" hint-size="100%,420px"></dc-import>
+        </div>
+      </sc-if>
+      <sc-if value="{{ notReady }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px dashed var(--line); padding:16px; font-family:var(--font-m); font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint);">{{ defsPlaceholder }}</div>
+      </sc-if>
+    </section>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1600},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ready&quot;,&quot;loading&quot;,&quot;error&quot;],&quot;default&quot;:&quot;ready&quot;,&quot;tsType&quot;:&quot;\&quot;ready\&quot; | \&quot;loading\&quot; | \&quot;error\&quot;&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;\&quot;desktop\&quot; | \&quot;mobile\&quot;&quot;},&quot;openDef&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string | null&quot;},&quot;openStrip&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string | null&quot;},&quot;kpiSubs&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const HALF = (React, color) => React.createElement("svg", {
+  width: 13, height: 13, viewBox: "0 0 13 13", "aria-hidden": "true", style: { display: "block", flex: "none" }
+}, [
+  React.createElement("circle", { key: "o", cx: 6.5, cy: 6.5, r: 5.75, fill: "none", stroke: color, strokeWidth: 1.2 }),
+  React.createElement("path", { key: "h", d: "M6.5 0.75 A5.75 5.75 0 0 1 6.5 12.25 Z", fill: color })
+]);
+
+class Component extends DCLogic {
+  state = {
+    theme: this.props.theme || "light",
+    openDef: this.props.openDef || null,
+    openStrip: this.props.openStrip || null,
+    cw: this.props.variant === "mobile" ? 332 : 531
+  };
+
+  /* Charts are drawn at an exact pixel width rather than stretched, so the
+     card's real width is measured and fed back in. */
+  componentDidMount() {
+    this.measure();
+    if (typeof ResizeObserver === "function") {
+      this.ro = new ResizeObserver(() => this.measure());
+      if (this.gridEl) this.ro.observe(this.gridEl);
+    }
+  }
+  componentWillUnmount() { if (this.ro) this.ro.disconnect(); }
+  measure = () => {
+    const first = this.gridEl && this.gridEl.firstElementChild;
+    if (!first) return;
+    const w = Math.round(first.getBoundingClientRect().width) - 30;
+    if (w > 140 && w !== this.state.cw) this.setState({ cw: w });
+  };
+
+  renderVals() {
+    const D = window.LAData, C = window.ChartSvg;
+    if (!D || !C) return {};
+    const mode = this.props.mode || "ready";
+    const ready = mode === "ready";
+    const mobile = this.props.variant === "mobile";
+    const theme = this.state.theme;
+
+    const cw = this.state.cw;
+    const hLine = mobile ? 190 : 236;
+    const hBarH = mobile ? 272 : 300;
+    const base = {
+      gridColor: "var(--grid)", axisColor: "var(--axis)",
+      fontSize: mobile ? 9.5 : 10.5, fontFamily: "IBM Plex Mono, monospace"
+    };
+    const nulls = D.months.map(() => null);
+    const zeros = D.months.map(() => 0);
+
+    const el = {
+      orders_over_time: C.line(React, Object.assign({}, base, {
+        w: cw, h: hLine, x: D.months.map((m) => m.slice(0, 3)), yMax: 40,
+        yTicks: [0, 10, 20, 30, 40], left: mobile ? 30 : 34, right: mobile ? 8 : 14,
+        series: [{ values: ready ? D.volume : nulls, color: "var(--chart-1)" }],
+        label: "Order volume by month"
+      })),
+      delivery_performance: C.line(React, Object.assign({}, base, {
+        w: cw, h: hLine, x: D.months.map((m) => m.slice(0, 3)), yMax: 30,
+        yTicks: [0, 10, 20, 30], left: mobile ? 30 : 34, right: mobile ? 46 : 76,
+        series: ready ? [
+          { values: D.delivered, color: "var(--chart-1)", endLabel: mobile ? "Del." : "Delivered", endLabelDy: -1 },
+          { values: D.delayed, color: "var(--chart-5)", endLabel: mobile ? "Dly." : "Delayed", endLabelDy: -6 },
+          { values: D.exception, color: "var(--chart-2)", endLabel: mobile ? "Exc." : "Exception", endLabelDy: 7 }
+        ] : [{ values: nulls, color: "var(--chart-1)" }],
+        endLabelSize: mobile ? 9 : 10,
+        label: "Delivery outcomes by month"
+      })),
+      carrier_breakdown: C.vbar(React, Object.assign({}, base, {
+        w: cw, h: hLine + 22, x: D.carriers, xAngle: -38, bottom: 46,
+        values: ready ? D.carrierRate : zeros.slice(0, 9), yMax: 25,
+        yTicks: [0, 5, 10, 15, 20, 25], fmtY: (t) => t + "%",
+        left: mobile ? 32 : 36, right: 10,
+        colors: "var(--chart-1)", maxBarSize: mobile ? 22 : 34, radius: 0,
+        valueLabels: ready ? D.carrierRate.map((v) => v.toFixed(1)) : null,
+        valueColor: "var(--muted)", valueSize: mobile ? 8.5 : 9.5,
+        label: "Delay rate by carrier"
+      })),
+      destination_breakdown: C.hbar(React, Object.assign({}, base, {
+        w: cw, h: hBarH, labels: D.cities, values: ready ? D.cityOrders : zeros.slice(0, 10),
+        xMax: 44, xTicks: [0, 10, 20, 30, 40], left: mobile ? 84 : 96, right: mobile ? 26 : 30,
+        colors: "var(--chart-1)", maxBarSize: mobile ? 12 : 15, radius: 0,
+        labelColor: "var(--muted)", labelSize: mobile ? 9.5 : 10.5,
+        valueLabels: ready ? D.cityOrders.map(String) : null,
+        valueColor: "var(--muted)", valueSize: mobile ? 9 : 10,
+        label: "Orders by destination city"
+      }))
+    };
+
+    const plans = {
+      orders_over_time: D.volumePlan,
+      delivery_performance: D.volumePlan,
+      carrier_breakdown: D.carrierPlan,
+      destination_breakdown: D.volumePlan
+    };
+
+    const numBase = "font-family:var(--font-m); font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:-0.02em; line-height:1;";
+    const numOn = numBase + " font-size:" + (mobile ? 34 : 38) + "px; color:var(--text);";
+    const numOff = numBase + " font-size:" + (mobile ? 34 : 38) + "px; color:var(--line-2);";
+
+    const infoBase = "width:32px; height:32px; flex:none; margin:-7px -7px -7px auto; display:flex; align-items:center; justify-content:center; background:transparent; border:1px solid transparent; padding:0;";
+    const infoInner = (on) => "display:flex; align-items:center; justify-content:center; width:18px; height:18px; border:1px solid " +
+      (on ? "var(--accent)" : "var(--line-2)") + "; background:" + (on ? "var(--accent)" : "transparent") +
+      "; color:" + (on ? "var(--on-accent)" : "var(--faint)") + "; font-family:var(--font-m); font-size:10px; line-height:1;";
+
+    const cells = D.kpis.map((k) => {
+      const parts = k.value.match(/^([\d.,]+)(.*)$/) || [null, k.value, ""];
+      const isOpen = this.state.openDef === k.key;
+      const rate = k.format === "percent" || k.format === "days";
+      return {
+        key: k.key,
+        label: k.label,
+        aria: "How " + k.label + " is calculated",
+        open: isOpen,
+        onInfo: () => this.setState((s) => ({ openDef: s.openDef === k.key ? null : k.key })),
+        infoStyle: infoBase,
+        infoInner: infoInner(isOpen),
+        numStyle: ready ? numOn : numOff,
+        main: ready ? parts[1] : "—",
+        unit: ready ? (parts[2] || "").trim() : "",
+        sample: ready && k.sample ? k.sample : "",
+        spark: ready ? C.spark(React, {
+          w: mobile ? 96 : 78, h: 22, values: k.series, color: "var(--accent)",
+          baseline: rate ? Number(k.mean) : null,
+          baselineColor: k.health === "warn" ? "var(--warn)" : "var(--line-2)",
+          strokeWidth: 1.4
+        }) : React.createElement("span", {
+          className: "la-hatch",
+          style: { display: "block", width: (mobile ? 96 : 78) + "px", height: "22px", flex: "none", opacity: 0.7 }
+        }),
+        delta: ready ? k.delta + " vs Jan" : "",
+        warn: ready && k.health === "warn",
+        warnText: "Dec " + k.latest + " vs " + k.mean + k.unit.replace("orders", "") + " period"
+      };
+    });
+
+    const openKpi = D.kpis.filter((k) => k.key === this.state.openDef)[0];
+
+    return {
+      theme: theme,
+      themeWord: theme === "dark" ? "Dark" : "Light",
+      themeLabel: theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
+      themeIcon: HALF(React, "currentColor"),
+      toggleTheme: () => this.setState((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
+
+      padY: mobile ? "16px 14px 40px" : "22px 24px 56px",
+      isError: mode === "error",
+      isReady: ready,
+      notReady: !ready,
+
+      figuresNote: ready ? "5 metrics · period 2025" : mode === "loading" ? "Loading…" : "Unavailable",
+      chartsNote: ready ? "4 charts · 43 rows" : mode === "loading" ? "Loading…" : "Unavailable",
+      defsNote: ready ? "Applies to all five figures" : "",
+      defsPlaceholder: mode === "loading" ? "Definitions arrive with the figures" : "Definitions could not be loaded",
+
+      cells: cells,
+      defOpen: ready && !!openKpi,
+      defLabel: openKpi ? openKpi.label : "",
+      defText: openKpi ? openKpi.definition + " " + openKpi.healthNote : "",
+      closeDef: () => this.setState({ openDef: null }),
+
+      chartCards: D.charts.map((c) => ({
+        key: c.key,
+        type: c.type,
+        title: c.title,
+        why: c.why,
+        el: el[c.key],
+        plan: ready ? c.plan : "",
+        planObj: plans[c.key],
+        open: ready && this.state.openStrip === c.key,
+        sign: this.state.openStrip === c.key ? "\u2212" : "+",
+        cta: this.state.openStrip === c.key ? "Hide" : "Audit",
+        onToggle: () => this.setState((s) => ({ openStrip: s.openStrip === c.key ? null : c.key }))
+      })),
+
+      gridRef: (el) => {
+        if (el && el !== this.gridEl) {
+          this.gridEl = el;
+          if (this.ro) this.ro.observe(el);
+          requestAnimationFrame(this.measure);
+        }
+      },
+      kpiPlan: D.kpiPlan,
+      kpiSubs: this.props.kpiSubs || ""
+    };
+  }
+}
+
+</script>
+</body>
+</html>

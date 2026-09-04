@@ -21,7 +21,7 @@ not settle them on its own:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Literal
 
 import sqlalchemy as sa
 from sqlalchemy import Date, Integer, Numeric, cast, func
@@ -59,6 +59,11 @@ class MetricDef:
     denominator: Callable[[], sa.ColumnElement] | None = None
     #: Surfaced in QueryPlan.notes whenever the metric is used.
     note: str | None = None
+    #: Which way is good. Only outcome metrics have one - a count of orders is
+    #: neither good nor bad, so most metrics leave this None and the UI shows
+    #: no judgement. This lives here rather than in the frontend because it is
+    #: metric semantics, and metrics are defined exactly once.
+    direction: Literal["up", "down"] | None = None
 
     @property
     def is_ratio(self) -> bool:
@@ -133,6 +138,7 @@ METRICS: dict[Metric, MetricDef] = {
             "on_time_rate excludes in_transit and canceled orders from the "
             "denominator - they have no delivery outcome yet."
         ),
+        direction="up",
     ),
     Metric.delay_rate: MetricDef(
         key=Metric.delay_rate,
@@ -149,6 +155,7 @@ METRICS: dict[Metric, MetricDef] = {
             "groups are not statistically meaningful - check the denominator "
             "before acting on a rate."
         ),
+        direction="down",
     ),
     Metric.avg_delivery_days: MetricDef(
         key=Metric.avg_delivery_days,
@@ -164,6 +171,7 @@ METRICS: dict[Metric, MetricDef] = {
             "avg_delivery_days is computed over orders with a delivery_date "
             "only (370 of 400 in the full dataset)."
         ),
+        direction="down",
     ),
     Metric.total_revenue: MetricDef(
         key=Metric.total_revenue,

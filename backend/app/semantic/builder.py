@@ -60,6 +60,7 @@ class BuiltQuery:
                     label=METRICS[Metric(k)].label,
                     definition=METRICS[Metric(k)].definition,
                     format=METRICS[Metric(k)].format,
+                    direction=METRICS[Metric(k)].direction,
                 )
                 for k in self.metric_keys
             ],

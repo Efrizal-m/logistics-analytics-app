@@ -1,67 +1,129 @@
-import { api } from "../api/client";
-import { ChartRenderer } from "../components/ChartRenderer";
-import { KpiCard } from "../components/KpiCard";
-import { QueryPlanPanel } from "../components/QueryPlanPanel";
-import type { ChartPayload } from "../types";
+import { useState } from "react";
+import { api, BASE_URL } from "../api/client";
+import { BlueprintMarks } from "../components/Blueprint";
+import { ChartCard } from "../components/ChartCard";
+import { ErrorPanel } from "../components/ErrorPanel";
+import { KpiBand } from "../components/KpiBand";
+import { PlanSheet } from "../components/PlanSheet";
+import { buildKpiTrends, chartsNote, defsNote, figuresNote } from "../derive";
+import type { SchemaResponse } from "../types";
 import { useAsync } from "../useAsync";
+import { useVariant } from "../useVariant";
 
-const CHARTS = [
-  "orders_over_time",
-  "delivery_performance",
-  "carrier_breakdown",
-  "destination_breakdown",
-];
+const CHART_NAMES = ["orders_over_time", "delivery_performance", "carrier_breakdown", "destination_breakdown"];
 
-export function Dashboard() {
+export function Dashboard({ schema }: { schema: SchemaResponse | null }) {
+  const variant = useVariant();
   const kpis = useAsync(() => api.kpis(), []);
-  const charts = useAsync(() => Promise.all(CHARTS.map((name) => api.chart(name))), []);
+  const charts = useAsync(
+    () => Promise.all([...CHART_NAMES.map((name) => api.chart(name)), api.chart("kpi_trends")]),
+    [],
+  );
+  const [openStrip, setOpenStrip] = useState<string | null>(null);
+
+  const chartPayloads = charts.data ? charts.data.slice(0, CHART_NAMES.length) : null;
+  const trendsPayload = charts.data ? charts.data[CHART_NAMES.length] : null;
+  const trends =
+    kpis.data && trendsPayload
+      ? buildKpiTrends(trendsPayload.rows, trendsPayload.chart.x_key ?? "month", kpis.data.kpis)
+      : null;
+
+  const kpisFailed = !!kpis.error;
+  const chartsFailed = !!charts.error;
+  const anyFailed = kpisFailed || chartsFailed;
+  const bothFailed = kpisFailed && chartsFailed;
 
   return (
     <>
-      <section>
-        <div className="section-title">Key figures</div>
-        {kpis.error && <div className="banner error">{kpis.error}</div>}
-        <div className="kpi-grid">
-          {kpis.loading
-            ? CHARTS.map((name) => <div className="skeleton" key={name} />)
-            : kpis.data?.kpis.map((kpi) => <KpiCard kpi={kpi} key={kpi.key} />)}
-        </div>
-      </section>
-
-      <section>
-        <div className="section-title">Charts</div>
-        {charts.error && <div className="banner error">{charts.error}</div>}
-        <div className="chart-grid">
-          {charts.loading
-            ? CHARTS.map((name) => <div className="skeleton" style={{ height: 320 }} key={name} />)
-            : charts.data?.map((payload) => <ChartCard payload={payload} key={payload.name} />)}
-        </div>
-      </section>
-
-      {kpis.data && (
-        <section>
-          <div className="section-title">Definitions behind these figures</div>
-          <QueryPlanPanel plan={kpis.data.plan} />
+      {anyFailed && (
+        <section className="la-sec">
+          <ErrorPanel
+            endpoints={["GET /api/kpis", "GET /api/charts ×5"]}
+            failedAt={kpis.failedAt ?? charts.failedAt}
+            kind={kpis.kind ?? charts.kind}
+            message={kpis.error ?? charts.error ?? ""}
+            baseUrl={BASE_URL}
+            onRetry={() => {
+              kpis.refetch();
+              charts.refetch();
+            }}
+            partial={!bothFailed}
+          />
         </section>
       )}
-    </>
-  );
-}
 
-function ChartCard({ payload }: { payload: ChartPayload }) {
-  return (
-    <div className="card chart-card">
-      <div className="chart-head">
-        <h3>{payload.title}</h3>
-        <div className="chart-why">{payload.chart.reason}</div>
-      </div>
-      <ChartRenderer spec={payload.chart} rows={payload.rows} />
-      <details>
-        <summary>Query plan and data</summary>
-        <div style={{ marginTop: 10 }}>
-          <QueryPlanPanel plan={payload.plan} rows={payload.rows} />
+      <section className="la-sec">
+        <div className="la-sec-head">
+          <h2 className="la-kicker" style={{ fontSize: 10, letterSpacing: "0.16em" }}>
+            Key figures
+          </h2>
+          <span className="la-meta">
+            {kpis.data
+              ? figuresNote(kpis.data.kpis.length, schema?.dataset_start ?? "", schema?.dataset_end ?? "")
+              : kpis.loading
+                ? "Loading…"
+                : "Unavailable"}
+          </span>
         </div>
-      </details>
-    </div>
+        <KpiBand kpis={kpis.data?.kpis ?? null} trends={trends} variant={variant} />
+      </section>
+
+      <section className="la-sec">
+        <div className="la-sec-head">
+          <h2 className="la-kicker" style={{ fontSize: 10, letterSpacing: "0.16em" }}>
+            Charts
+          </h2>
+          <span className="la-meta">
+            {chartPayloads ? chartsNote(chartPayloads) : charts.loading ? "Loading…" : "Unavailable"}
+          </span>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 528px), 1fr))",
+          }}
+        >
+          {CHART_NAMES.map((name, i) => (
+            <ChartCard
+              key={name}
+              payload={chartPayloads?.[i] ?? null}
+              variant={variant}
+              open={openStrip === name}
+              onToggle={() => setOpenStrip((current) => (current === name ? null : name))}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="la-sec">
+        <div className="la-sec-head">
+          <h2 className="la-kicker" style={{ fontSize: 10, letterSpacing: "0.16em" }}>
+            Definitions behind these figures
+          </h2>
+          <span className="la-meta">{kpis.data ? defsNote(kpis.data.kpis.length) : ""}</span>
+        </div>
+        {kpis.data ? (
+          <div className="la-bp la-card" style={{ padding: "14px 16px 15px" }}>
+            <BlueprintMarks />
+            <PlanSheet plan={kpis.data.plan} />
+          </div>
+        ) : (
+          <div
+            style={{
+              border: "1px dashed var(--line)",
+              padding: 16,
+              fontFamily: "var(--font-m)",
+              fontSize: "var(--t-cap)",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: "var(--faint)",
+            }}
+          >
+            {kpis.loading ? "Definitions arrive with the figures" : "Definitions could not be loaded"}
+          </div>
+        )}
+      </section>
+    </>
   );
 }
