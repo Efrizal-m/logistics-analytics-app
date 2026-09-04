@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 
 from app.forecasting.grain import GRAIN_COLUMNS, ForecastGrain, ResolvedGrain
 from app.models import orders
+from app.semantic.executor import get_dataset_bounds
 
 #: Months held back to score a method before it is used to predict.
 HOLDOUT_MONTHS = 3
@@ -95,12 +96,10 @@ def load_monthly_history(
 
     observed = {row.month: float(row.value or 0) for row in session.execute(statement)}
 
-    bounds = session.execute(
-        sa.select(sa.func.min(orders.c.order_date), sa.func.max(orders.c.order_date))
-    ).one()
+    lo, hi = get_dataset_bounds(session)
     return [
         SeriesPoint(period=month.isoformat(), value=observed.get(month, 0.0))
-        for month in _month_sequence(bounds[0], bounds[1])
+        for month in _month_sequence(lo, hi)
     ]
 
 

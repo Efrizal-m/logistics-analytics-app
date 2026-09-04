@@ -12,12 +12,37 @@ answered. Every answer ships with the plan that produced it.
 
 - **Frontend** — React + TypeScript + Vite + Recharts, deployed on Vercel
 - **Backend** — FastAPI + SQLAlchemy Core + PostgreSQL, Docker on a VPS
-- **AI** — Anthropic `claude-opus-5`, tool use only
+- **AI** — Anthropic `claude-sonnet-5`, tool use only
+
+---
+
+## Glossary
+
+| Term | Stands for | Used in this project for |
+|---|---|---|
+| AI | Artificial Intelligence | The model that routes questions to tools and narrates results — never computes numbers itself |
+| API | Application Programming Interface | The FastAPI backend's HTTP endpoints under `/api/*` |
+| CI | Continuous Integration | Where a future golden-question eval set would run (see [Future improvements](#future-improvements)) |
+| CORS | Cross-Origin Resource Sharing | The browser policy that must allow the Vercel frontend to call the API on a different origin |
+| CSV | Comma-Separated Values | The format of the seed dataset (`data/mock_logistics_data.csv`) |
+| HTTP / HTTPS | HyperText Transfer Protocol (Secure) | How the frontend talks to the API; HTTPS is required in production |
+| IP | Internet Protocol | The per-client address the rate limiter keys its quotas on |
+| KPI | Key Performance Indicator | The headline numbers on the dashboard (total orders, on-time rate, etc.) |
+| LRU | Least Recently Used | The eviction policy for the `/api/ask` answer cache once it's full |
+| SKU | Stock Keeping Unit | A unique identifier for one product variant; too sparse per-SKU here to forecast directly, so forecasts are lifted to `product_category` |
+| SLA | Service Level Agreement | A promised delivery date — absent from this dataset, which is why on-time is derived from `status` instead |
+| SQL | Structured Query Language | What the query builder generates from validated parameters — the model never writes it |
+| TLS | Transport Layer Security | The encryption terminated by the reverse proxy in front of the API |
+| TTL | Time To Live | How long a cached response is kept before it's recomputed |
+| UI | User Interface | The React frontend |
+| URL | Uniform Resource Locator | e.g. `VITE_API_BASE_URL`, the address the frontend uses to reach the API |
+| VPS | Virtual Private Server | Where the backend is deployed, behind an existing reverse proxy |
 
 ---
 
 ## Contents
 
+- [Glossary](#glossary)
 - [Running it locally](#running-it-locally)
 - [Environment variables](#environment-variables)
 - [System overview](#system-overview)
@@ -330,6 +355,46 @@ browser as mixed content.
 > because Docker Hub is unreachable from the machine this was developed on.
 > `docker compose up -d --build` is the first thing to run on the VPS.
 
+### Rate limiting, caching, and `TRUSTED_PROXIES`
+
+The API sits behind the reverse proxy above, so `request.client.host` is the
+proxy's address, not the caller's — the app trusts `X-Forwarded-For` only from
+addresses in `TRUSTED_PROXIES` (`.env.example`), walking the header
+right-to-left to the first entry that isn't itself a trusted proxy. **This
+must match wherever the reverse proxy actually runs**, or every client
+collapses onto one shared rate-limit bucket: too narrow and the proxy's own
+address falls outside it (the header gets ignored entirely — everyone shares
+one bucket, keyed on the proxy); too wide and a client on that range can set
+its own rate-limit identity via a forged header. The default
+(`127.0.0.1,::1` plus the RFC1918 ranges) matches this project's Docker
+deployment; narrowing it to just `proxy-net`'s own subnet is tighter for
+production. Verify the assumption once with:
+
+```bash
+docker compose logs api | grep -oE '^INFO: *[0-9.]+' | sort -u
+```
+
+— every address printed there needs to fall inside `TRUSTED_PROXIES`, or the
+`X-Forwarded-For` header is being silently ignored.
+
+Two independent per-client-IP limits (`.env.example` has the full list):
+`ASK_RATE_LIMIT_REQUESTS` per `ASK_RATE_LIMIT_WINDOW_SECONDS` on `/api/ask`
+(10/hour by default — it spends real, billed model calls), and a much looser
+`DASHBOARD_RATE_LIMIT_REQUESTS`/`..._WINDOW_SECONDS` on the GET endpoints
+(60/min — a single page load fires ~6 requests). `/health` is never limited,
+since Docker's own healthcheck polls it every 30s. A client over budget gets
+`429` with a `Retry-After` header.
+
+Dashboard responses and `/api/schema` are cached for `CACHE_TTL_SECONDS`
+(default 300s; `0` disables expiry) — safe because the API's role only holds
+`SELECT` and the dataset cannot change out from under a running process.
+`/api/ask` is cached too, keyed on the question (case/whitespace-normalized)
+and the configured model, capped at `ASK_CACHE_MAX_ENTRIES` distinct
+questions (default 128, LRU-evicted; `0` disables it) — so asking the same
+question twice costs one model call, not two. Re-running `python -m app.seed`
+against a live `api` container is picked up within `CACHE_TTL_SECONDS`, or
+immediately via `docker compose restart api`.
+
 ---
 
 ## Tests
@@ -338,10 +403,13 @@ browser as mixed content.
 cd backend
 docker compose up -d db && .venv/bin/python -m app.seed
 .venv/bin/python -m pytest tests/ -q
-# 58 passed
+# 91 passed
 ```
 
 Tests run against a real Postgres, because the thing being tested is SQL.
+`test_ratelimit.py` and `test_cache.py` are the exception — pure units with no
+server and no database, so they run even when the Postgres fixture above would
+skip the rest of the suite.
 
 - **`test_metrics.py`** — every metric is checked against a value computed by
   reading the CSV directly in the test, not by running the application. The
@@ -358,6 +426,20 @@ Tests run against a real Postgres, because the thing being tested is SQL.
 - **`test_forecast.py`** — holdout scoring, non-negative forecasts, the SKU
   guard, and thin-group warnings.
 - **`test_charts.py`** — chart-type selection for each result shape.
+- **`test_ratelimit.py`** — token-bucket refill arithmetic against a faked
+  clock, lossless eviction of refilled buckets vs. the LRU fallback, thread
+  safety under concurrent access, and `client_key()`'s trusted-proxy /
+  `X-Forwarded-For` resolution (including the case that motivated it — an
+  untrusted peer cannot set its own rate-limit identity via the header).
+- **`test_cache.py`** — cache hits/misses per key, that a failed computation
+  is never cached, the `/api/ask` LRU cap, and that the TTL rollover clears
+  every cache together (including `get_dataset_bounds`'s and the system
+  prompt's, so a reseed can't leave one fresher than the other).
+- **`test_api.py`** — through FastAPI's `TestClient`: `/health` is exempt from
+  rate limiting, a `429` still carries the CORS header the browser needs to
+  read it (the specific regression a middleware-based limiter would
+  reintroduce), and the `/api/ask` cache actually reduces the number of model
+  calls for equivalent questions.
 
 ---
 

@@ -4,9 +4,11 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app import cache
 from app.ai.client import is_configured
 from app.ai.router import SUPPORTED_EXAMPLES
 from app.db import get_session
+from app.ratelimit import dashboard_rate_limit
 from app.semantic.executor import get_dataset_bounds
 from app.semantic.registry import DIMENSIONS, METRICS
 from app.semantic.schema import Dimension, Metric
@@ -41,9 +43,7 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.get("/api/schema", response_model=SchemaResponse)
-def get_schema(session: Session = Depends(get_session)) -> SchemaResponse:
-    """What the system can compute. Drives the UI's metric tooltips."""
+def _build_schema(session: Session) -> SchemaResponse:
     lo, hi = get_dataset_bounds(session)
     return SchemaResponse(
         metrics=[
@@ -66,3 +66,9 @@ def get_schema(session: Session = Depends(get_session)) -> SchemaResponse:
         ai_enabled=is_configured(),
         example_questions=SUPPORTED_EXAMPLES,
     )
+
+
+@router.get("/api/schema", response_model=SchemaResponse, dependencies=[Depends(dashboard_rate_limit)])
+def get_schema(session: Session = Depends(get_session)) -> SchemaResponse:
+    """What the system can compute. Drives the UI's metric tooltips."""
+    return cache.payload("schema", lambda: _build_schema(session))
