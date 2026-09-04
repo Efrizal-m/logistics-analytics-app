@@ -9,11 +9,24 @@ from sqlalchemy.orm import Session
 from app import cache
 from app.analytics.charts import ChartSpec
 from app.analytics.kpis import PRESET_CHARTS, compute_kpis, compute_preset_chart
+from app.auth import require_auth
 from app.db import get_session
 from app.ratelimit import dashboard_rate_limit
 from app.semantic.schema import QueryPlan
 
-router = APIRouter(prefix="/api", dependencies=[Depends(dashboard_rate_limit)])
+# Auth before rate limit, deliberately: the limiter is keyed on client IP
+# alone (app/ratelimit.py's client_key()), so a caller behind a shared NAT or
+# corporate proxy shares one bucket with everyone else on that address. If
+# the rate limit ran first, an unauthenticated request from that address
+# would spend a token from the *same* bucket a legitimate logged-in user is
+# drawing from. Auth is a cheap in-memory HMAC check either way, so checking
+# it first costs nothing and closes that hole. require_auth (and the limiter
+# behind it) both still run before Depends(get_session) below - router-level
+# dependencies resolve before parameter-level ones - so a rejected request
+# never opens a database connection.
+router = APIRouter(
+    prefix="/api", dependencies=[Depends(require_auth), Depends(dashboard_rate_limit)]
+)
 
 
 class KpiResponse(BaseModel):

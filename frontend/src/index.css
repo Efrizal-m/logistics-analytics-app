@@ -383,6 +383,36 @@ body {
   color: var(--on-accent);
 }
 
+/* The spec for every text input in the app - lifted from Ask.tsx's original
+   inline styles (the only styled input that existed before LoginPage), now
+   shared so a second consumer doesn't mean a second copy. */
+.la-input {
+  min-height: var(--ctl-lg);
+  padding: 0 13px;
+  border: 1px solid var(--line-2);
+  background: var(--raise);
+  color: var(--text);
+  font-family: var(--font-b);
+  font-size: 14px;
+  caret-color: var(--accent);
+}
+.la-input::placeholder {
+  color: var(--faint);
+}
+.la-input:disabled {
+  opacity: 0.6;
+}
+.la-label {
+  display: block;
+  font-family: var(--font-m);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 5px;
+}
+
 .la-pill {
   display: inline-block;
   font-family: var(--font-m);
