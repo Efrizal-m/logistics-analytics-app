@@ -28,8 +28,12 @@ export function Dashboard({ schema }: { schema: SchemaResponse | null }) {
       ? buildKpiTrends(trendsPayload.rows, trendsPayload.chart.x_key ?? "month", kpis.data.kpis)
       : null;
 
-  const kpisFailed = !!kpis.error;
-  const chartsFailed = !!charts.error;
+  // A 401 means the session just expired - api/client.ts's global handler is
+  // already clearing it and this whole page is about to unmount in favor of
+  // the login screen. Rendering the "backend might be down" ErrorPanel for
+  // the one frame before that commit would be actively misleading.
+  const kpisFailed = !!kpis.error && kpis.status !== 401;
+  const chartsFailed = !!charts.error && charts.status !== 401;
   const anyFailed = kpisFailed || chartsFailed;
   const bothFailed = kpisFailed && chartsFailed;
 

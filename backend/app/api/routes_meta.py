@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app import cache
 from app.ai.client import is_configured
 from app.ai.router import SUPPORTED_EXAMPLES
+from app.auth import require_auth
 from app.db import get_session
 from app.ratelimit import dashboard_rate_limit
 from app.semantic.executor import get_dataset_bounds
@@ -68,7 +69,12 @@ def _build_schema(session: Session) -> SchemaResponse:
     )
 
 
-@router.get("/api/schema", response_model=SchemaResponse, dependencies=[Depends(dashboard_rate_limit)])
+@router.get(
+    "/api/schema",
+    response_model=SchemaResponse,
+    # Auth before rate limit - see the comment on routes_dashboard.router.
+    dependencies=[Depends(require_auth), Depends(dashboard_rate_limit)],
+)
 def get_schema(session: Session = Depends(get_session)) -> SchemaResponse:
     """What the system can compute. Drives the UI's metric tooltips."""
     return cache.payload("schema", lambda: _build_schema(session))
