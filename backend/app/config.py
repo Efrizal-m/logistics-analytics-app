@@ -37,6 +37,32 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = 300
     ask_cache_max_entries: int = 128
 
+    # A single shared login gates every endpoint except /health. No users
+    # table - the API's database role only holds SELECT, and a login table
+    # would need write access for one row of config. If auth_enabled is true,
+    # every one of username/password/secret must be set (and the secret long
+    # enough to actually resist forgery) or every protected endpoint fails
+    # closed with a 503 rather than silently serving the app open (unlike
+    # anthropic_api_key, which is allowed to default empty and degrade
+    # gracefully - an unconfigured login must never mean "no login").
+    auth_enabled: bool = True
+    auth_username: str = ""
+    auth_password: str = ""
+    # HMAC signing key for session tokens. Generate with: openssl rand -hex 32
+    auth_secret: str = ""
+    auth_session_hours: int = 12
+    login_rate_limit_requests: int = 5
+    login_rate_limit_window_seconds: int = 900
+
+    @property
+    def auth_configured(self) -> bool:
+        # >= 32 chars, not just non-empty: an AUTH_SECRET of "changeme" would
+        # pass a bare truthiness check and mint tokens anyone could forge by
+        # brute-forcing the HMAC key. openssl rand -hex 32 yields 64.
+        return bool(
+            self.auth_username and self.auth_password and len(self.auth_secret) >= 32
+        )
+
     @property
     def owner_dsn(self) -> str:
         """Full-privilege DSN, used only by the seed script."""

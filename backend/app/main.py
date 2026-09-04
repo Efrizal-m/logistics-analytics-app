@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import routes_ask, routes_dashboard, routes_meta
+from app.api import routes_ask, routes_auth, routes_dashboard, routes_meta
 from app.config import get_settings
 
 app = FastAPI(
@@ -27,3 +27,4 @@ app.add_middleware(
 app.include_router(routes_meta.router)
 app.include_router(routes_dashboard.router)
 app.include_router(routes_ask.router)
+app.include_router(routes_auth.router)

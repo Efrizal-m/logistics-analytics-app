@@ -46,6 +46,11 @@ export function Ask({ schema }: { schema: SchemaResponse | null }) {
           unsupported: true,
           supported_examples: schema?.example_questions ?? [],
         });
+      } else if (caught instanceof ApiError && caught.status === 401) {
+        // Session expiry: api/client.ts's global handler has already cleared
+        // the token and is unmounting this whole page in favor of the login
+        // screen. Rendering a red error box here for the instant before that
+        // commit would be misleading - it isn't a real answer failure.
       } else {
         setNetworkError(caught instanceof ApiError ? caught.message : String(caught));
       }
@@ -90,18 +95,8 @@ export function Ask({ schema }: { schema: SchemaResponse | null }) {
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ask about delays, carriers, regions, delivery times, or future demand…"
             aria-label="Ask a question about the logistics data"
-            style={{
-              flex: 1,
-              minWidth: 0,
-              fontFamily: "var(--font-b)",
-              fontSize: 14,
-              minHeight: "var(--ctl-lg)",
-              padding: "0 13px",
-              background: "var(--raise)",
-              border: "1px solid var(--line-2)",
-              color: "var(--text)",
-              caretColor: "var(--accent)",
-            }}
+            className="la-input"
+            style={{ flex: 1, minWidth: 0 }}
             onKeyDown={(e) => {
               if (e.key === "Enter") void submit(question);
             }}

@@ -12,12 +12,14 @@ from app import cache
 from app.ai.client import AnthropicUnavailable
 from app.ai.router import ToolInputRejected, ask
 from app.analytics.charts import ChartSpec
+from app.auth import require_auth
 from app.config import get_settings
 from app.db import get_session
 from app.ratelimit import ask_rate_limit
 from app.semantic.schema import QueryPlan
 
-router = APIRouter(prefix="/api", dependencies=[Depends(ask_rate_limit)])
+# Auth before rate limit - see the comment on routes_dashboard.router for why.
+router = APIRouter(prefix="/api", dependencies=[Depends(require_auth), Depends(ask_rate_limit)])
 
 
 class AskRequest(BaseModel):

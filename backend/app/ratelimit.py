@@ -180,10 +180,23 @@ def dashboard_limiter() -> RateLimiter:
     )
 
 
+@lru_cache
+def login_limiter() -> RateLimiter:
+    # A separate, much tighter budget than dashboard/ask: this one is a
+    # brute-force guard on credentials, not a cost/load control.
+    settings = get_settings()
+    return RateLimiter(
+        requests=settings.login_rate_limit_requests,
+        window_seconds=settings.login_rate_limit_window_seconds,
+        max_clients=settings.rate_limit_max_clients,
+    )
+
+
 def reset_limiters() -> None:
     """Test/reload hook, matching reset_bounds_cache / reset_prompt_cache."""
     ask_limiter.cache_clear()
     dashboard_limiter.cache_clear()
+    login_limiter.cache_clear()
 
 
 def _enforce(limiter: RateLimiter, request: Request) -> None:
@@ -205,3 +218,7 @@ async def ask_rate_limit(request: Request) -> None:
 
 async def dashboard_rate_limit(request: Request) -> None:
     _enforce(dashboard_limiter(), request)
+
+
+async def login_rate_limit(request: Request) -> None:
+    _enforce(login_limiter(), request)

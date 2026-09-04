@@ -9,6 +9,8 @@ interface Props {
   onTabChange: (tab: Tab) => void;
   theme: Theme;
   onToggleTheme: () => void;
+  username?: string | null;
+  onLogout?: () => void;
 }
 
 const TABS: { key: Tab; label: string }[] = [
@@ -16,7 +18,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "ask", label: "Ask a question" },
 ];
 
-export function Masthead({ subtitle, tab, onTabChange, theme, onToggleTheme }: Props) {
+export function Masthead({ subtitle, tab, onTabChange, theme, onToggleTheme, username, onLogout }: Props) {
   return (
     <header
       style={{
@@ -65,6 +67,26 @@ export function Masthead({ subtitle, tab, onTabChange, theme, onToggleTheme }: P
           ))}
         </nav>
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+        {onLogout && (
+          <button
+            type="button"
+            onClick={onLogout}
+            className="la-ibtn"
+            aria-label={username ? `Sign out of ${username}` : "Sign out"}
+            title={username ?? undefined}
+            style={{
+              minHeight: 32,
+              height: 32,
+              padding: "0 10px",
+              fontFamily: "var(--font-m)",
+              fontSize: 10,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            Sign out
+          </button>
+        )}
       </div>
     </header>
   );

@@ -25,10 +25,12 @@ answered. Every answer ships with the plan that produced it.
 | CI | Continuous Integration | Where a future golden-question eval set would run (see [Future improvements](#future-improvements)) |
 | CORS | Cross-Origin Resource Sharing | The browser policy that must allow the Vercel frontend to call the API on a different origin |
 | CSV | Comma-Separated Values | The format of the seed dataset (`data/mock_logistics_data.csv`) |
+| HMAC | Hash-based Message Authentication Code | Signs the session token so it can't be forged without `AUTH_SECRET`, without a server-side session store |
 | HTTP / HTTPS | HyperText Transfer Protocol (Secure) | How the frontend talks to the API; HTTPS is required in production |
-| IP | Internet Protocol | The per-client address the rate limiter keys its quotas on |
+| IP | Internet Protocol | The per-client address the rate limiter (and the login brute-force guard) keys its quotas on |
 | KPI | Key Performance Indicator | The headline numbers on the dashboard (total orders, on-time rate, etc.) |
 | LRU | Least Recently Used | The eviction policy for the `/api/ask` answer cache once it's full |
+| RAG | Retrieval-Augmented Generation | Retrieving text and putting it in the prompt so the model can answer from it — deliberately not used here, see [Technical notes](#technical-notes) |
 | SKU | Stock Keeping Unit | A unique identifier for one product variant; too sparse per-SKU here to forecast directly, so forecasts are lifted to `product_category` |
 | SLA | Service Level Agreement | A promised delivery date — absent from this dataset, which is why on-time is derived from `status` instead |
 | SQL | Structured Query Language | What the query builder generates from validated parameters — the model never writes it |
@@ -53,6 +55,7 @@ answered. Every answer ships with the plan that produced it.
 - [Tests](#tests)
 - [Assumptions and simplifications](#assumptions-and-simplifications)
 - [Limitations and unsupported queries](#limitations-and-unsupported-queries)
+- [Technical notes](#technical-notes)
 - [Future improvements](#future-improvements)
 - [AI usage disclosure](#ai-usage-disclosure)
 
@@ -114,6 +117,11 @@ tab needs one; without it that tab shows a notice and the endpoint returns
 | `ANTHROPIC_MODEL` | Defaults to `claude-opus-5`. |
 | `CORS_ORIGINS` | Comma-separated allowed origins. In production this is the exact Vercel URL, never `*`. |
 | `POSTGRES_PUBLISH_PORT` | Host port for Postgres, bound to `127.0.0.1` only. Defaults to `5432`. |
+| `AUTH_ENABLED` / `AUTH_USERNAME` / `AUTH_PASSWORD` / `AUTH_SECRET` | A single shared login gating every endpoint except `/health`. See [Authentication](#authentication). |
+
+Quote any `.env` value containing a space or `#` — `python-dotenv` treats an
+unquoted `#` as a comment start, so an unquoted password containing one is
+silently truncated rather than rejected.
 
 ### `frontend/.env`
 
@@ -355,6 +363,51 @@ browser as mixed content.
 > because Docker Hub is unreachable from the machine this was developed on.
 > `docker compose up -d --build` is the first thing to run on the VPS.
 
+### Authentication
+
+A single shared login (`AUTH_USERNAME` / `AUTH_PASSWORD` in `.env`) gates
+every endpoint except `/health` — the app has one logistics client and no
+concept of separate accounts (see [Assumptions](#assumptions-and-simplifications)),
+and `/api/ask` spends real, billed model calls, so leaving the API open to
+anyone who finds the URL wasn't acceptable once it left localhost. There is no
+users table: the API's Postgres role only holds `SELECT` on `orders`, and a
+login table would need write access for one row of config, so credentials
+live in `.env` beside `POSTGRES_PASSWORD` and `ANTHROPIC_API_KEY` instead.
+
+A session is a stateless, HMAC-signed `{username, expiry}` token
+(`AUTH_SECRET` signs it — generate with `openssl rand -hex 32`), sent as a
+bearer token and held in the browser's `localStorage` for `AUTH_SESSION_HOURS`
+(12 by default). Stateless means no server-side session store: a login
+survives an API restart and works the same way whether the container runs one
+worker or several. Logout is client-side only — it discards the local token,
+but the token itself stays valid server-side until it expires on its own.
+Rotating `AUTH_SECRET` is the only way to invalidate every session at once.
+
+**Fails closed, not open.** If `AUTH_ENABLED` is true but the username,
+password, or secret is missing — or the secret is shorter than 32
+characters, too weak to resist forgery — every protected endpoint answers
+`503` rather than quietly serving the app to anyone. This is the opposite of
+how `ANTHROPIC_API_KEY` behaves: that one is allowed to default empty and
+degrade the Ask tab gracefully, because an unconfigured login must never
+silently mean "no login."
+
+Auth is enforced as a FastAPI dependency, the same pattern the rate limiter
+already used and for the same reason: a dependency's `HTTPException` travels
+back out through `CORSMiddleware` and keeps the CORS header on the error
+response, while middleware that short-circuits earlier would not — the exact
+failure mode that made the frontend see an opaque "Failed to fetch" earlier in
+this project. `/api/login` carries its own tighter rate limit
+(`LOGIN_RATE_LIMIT_REQUESTS`, 5 per 15 minutes by default) as a brute-force
+guard, independent of the dashboard/ask limits.
+
+**Deployment order matters.** Enabling `AUTH_ENABLED=true` on the VPS while an
+older, pre-login frontend build is still live on Vercel makes every request
+401 with no login screen to recover through. Deploy the frontend first — it
+handles both states — then set the `AUTH_*` variables and restart the API.
+`docker compose up -d` (not `restart`) is required to pick up a `.env` change;
+`docker compose restart api` does not re-read it. `AUTH_ENABLED=false` is the
+rollback if the order slips.
+
 ### Rate limiting, caching, and `TRUSTED_PROXIES`
 
 The API sits behind the reverse proxy above, so `request.client.host` is the
@@ -403,13 +456,13 @@ immediately via `docker compose restart api`.
 cd backend
 docker compose up -d db && .venv/bin/python -m app.seed
 .venv/bin/python -m pytest tests/ -q
-# 91 passed
+# 122 passed
 ```
 
 Tests run against a real Postgres, because the thing being tested is SQL.
-`test_ratelimit.py` and `test_cache.py` are the exception — pure units with no
-server and no database, so they run even when the Postgres fixture above would
-skip the rest of the suite.
+`test_ratelimit.py`, `test_cache.py` and `test_auth.py` are the exception —
+pure units with no server and no database, so they run even when the Postgres
+fixture above would skip the rest of the suite.
 
 - **`test_metrics.py`** — every metric is checked against a value computed by
   reading the CSV directly in the test, not by running the application. The
@@ -426,6 +479,9 @@ skip the rest of the suite.
 - **`test_forecast.py`** — holdout scoring, non-negative forecasts, the SKU
   guard, and thin-group warnings.
 - **`test_charts.py`** — chart-type selection for each result shape.
+- **`test_kpis.py`** — that `kpi_trends` (which sources the KPI sparklines)
+  stays out of the public preset list, and that a KPI's `direction` comes from
+  the metric registry rather than being invented by the UI.
 - **`test_ratelimit.py`** — token-bucket refill arithmetic against a faked
   clock, lossless eviction of refilled buckets vs. the LRU fallback, thread
   safety under concurrent access, and `client_key()`'s trusted-proxy /
@@ -435,11 +491,18 @@ skip the rest of the suite.
   is never cached, the `/api/ask` LRU cap, and that the TTL rollover clears
   every cache together (including `get_dataset_bounds`'s and the system
   prompt's, so a reseed can't leave one fresher than the other).
+- **`test_auth.py`** — token mint/verify round-trip, rejection of an expired,
+  tampered, or wrong-secret token with no exception escaping (the class of
+  bug that would become a 500 slipping past `CORSMiddleware`), the credential
+  check, and that `auth_configured` requires all three of username, password
+  and a secret long enough to resist forgery.
 - **`test_api.py`** — through FastAPI's `TestClient`: `/health` is exempt from
-  rate limiting, a `429` still carries the CORS header the browser needs to
-  read it (the specific regression a middleware-based limiter would
-  reintroduce), and the `/api/ask` cache actually reduces the number of model
-  calls for equivalent questions.
+  auth and rate limiting, a `401` or `429` still carries the CORS header the
+  browser needs to read it (the specific regression a middleware-based
+  limiter or auth check would reintroduce), a garbage `Authorization` header
+  is rejected cleanly rather than raising, login issues a token that actually
+  unlocks the API, and the `/api/ask` cache actually reduces the number of
+  model calls for equivalent questions.
 
 ---
 
@@ -453,8 +516,11 @@ skip the rest of the suite.
 3. **`client_id` is a filter dimension, not a tenant boundary.** The brief
    describes a single logistics client, so there is no per-client auth or data
    isolation.
-4. **No authentication.** The brief does not require it and the data is mock.
-   Adding login would have been scope without value here.
+4. **One shared login, not per-user accounts.** `client_id` is a filter
+   dimension (point 3 above), not a tenant boundary, so there is nothing for
+   separate accounts to isolate — a single credential pair gates access
+   without pretending the app has users it doesn't. See
+   [Authentication](#authentication).
 5. **Relative dates anchor to the dataset's newest order date**, not to today.
 6. **`order_date` drives every time filter** — including questions phrased
    about deliveries. Filtering delayed orders "by week" groups them by the week
@@ -464,7 +530,10 @@ skip the rest of the suite.
    flags are consistent with discount percentages, and no lead time is
    negative. No cleaning layer was built because none is needed.
 8. **Revenue is booked order value**, not shipped or collected revenue.
-9. **No query cache.** 400 rows answer in single-digit milliseconds.
+9. **Caching is about model calls and request volume, not query speed.** 400
+   rows answer in single-digit milliseconds; the response cache exists because
+   `/api/ask` spends billed model calls and a page load fires ~6 requests. See
+   [Rate limiting, caching, and `TRUSTED_PROXIES`](#rate-limiting-caching-and-trusted_proxies).
 
 ## Limitations and unsupported queries
 
@@ -492,6 +561,97 @@ skip the rest of the suite.
   problem, but it does not suppress the row.
 - The narration call adds roughly a second of latency. It buys prose over
   numbers that are already on screen, which is a fair thing to cut.
+
+## Technical notes
+
+Things this architecture deliberately does not use, and the conditions under
+which each would earn its place. They come up in review often enough to be
+worth writing down once, with the thresholds that would change the answer.
+
+### Retrieval-augmented generation (RAG)
+
+**Not used, and not applicable to the numbers.** RAG retrieves text and puts it
+in a prompt so a model can answer from it. Here the model is never the thing
+that answers — it picks a tool, and SQL computes the figure. Retrieving "the 20
+orders most similar to the question" and asking a model to count them would
+substitute approximation for arithmetic. On-time rate over 400 orders has to
+consider all 400, not the ones nearest the phrasing; a delayed order is no less
+delayed for being semantically distant from the word *delay*.
+
+The other problem RAG solves — a schema too large to fit in a prompt — does not
+exist at 12 metrics and 12 dimensions. The whole vocabulary is a few hundred
+tokens and is byte-identical on every request.
+
+**Where it would earn its place**, in increasing distance from where this
+project stands:
+
+1. **A vocabulary too large to enumerate.** The system prompt carries every
+   distinct value of the seven low-cardinality columns, and already degrades
+   where it cannot: `destination_city` gets a count and eight examples, `sku`
+   gets its shape and cardinality instead of 355 literals. Push that to
+   hundreds of metrics across many tables and the fix is to retrieve the
+   relevant *slice of the semantic layer* per question — embed the metric and
+   dimension definitions, retrieve the top matches for the question, build the
+   tool schema from those. Note what is being retrieved: **the metadata, never
+   the facts.** The figures still come from SQL over the full table. This is
+   the version worth building, and it is a scaling technique for the prompt,
+   not a change to how answers are computed.
+2. **Genuinely unstructured columns.** This table has none — every column is an
+   enum, a number or a date. Add free text (delivery exception notes, driver
+   comments, support tickets) and *"why were the Jakarta deliveries late in
+   March?"* stops being answerable by any amount of SQL. That is a real
+   retrieval problem, and the shape is hybrid rather than replacement: the
+   semantic layer answers *how many*, retrieval over the notes answers *why*,
+   and the response keeps the two visibly separate so a retrieved anecdote is
+   never read as a computed rate.
+3. **A document corpus** — carrier contracts, SLA terms, ops runbooks. Then RAG
+   is answering questions about documents, which is what it is for, and it sits
+   beside the analytics path rather than inside it.
+
+### Fine-tuning the routing model
+
+**Not used.** Routing is a two-way classification with a fixed output schema,
+which is not a shortage of model capability. More decisively, the vocabulary is
+read from the database at first use, so the prompt tracks the data on its own —
+a fine-tune would bake today's carrier names into weights and need retraining
+every time a column gains a value. The prompt keeps that coupling live.
+
+### What actually changes at 4 million rows
+
+The AI path is the part that scales best: routing cost and latency are a
+function of the question and the vocabulary, not of row count, so the two-call
+shape is unchanged at any size. The data path is what gives way, roughly in
+this order:
+
+- **Indexes beyond the four that exist.** `order_date`, `status`, `carrier` and
+  `product_category` are indexed today (`app/models.py`). The remaining filter
+  columns are not, and neither are the composites that match how the app
+  actually queries — a time range *and* a group-by, which is nearly every
+  request. Reads move to a replica at the same time.
+- **Pre-aggregation.** The KPIs and preset charts are the same handful of
+  shapes on every page load, currently absorbed by `CACHE_TTL_SECONDS`. At
+  scale that becomes a materialized rollup refreshed on ingest. The registry
+  stays the single definition of each metric; a metric gains a second
+  expression against the rollup, and `QueryPlan` has to report which one ran —
+  otherwise the explainability contract quietly breaks, since "grouped by
+  month, 12 rows" would no longer distinguish an exact answer from an
+  approximate one.
+- **The raw-row table becomes a sample.** `limit` caps at 1000 and the plan
+  sheet shows the rows underneath an answer, which is honest at this size. At
+  millions it is a sample and has to be labelled one.
+- **`sample_size` inverts.** Today it exists so GLS's 8 concluded orders are
+  not read as a trend. At scale every group clears any threshold and the useful
+  addition is a confidence interval, not a bigger number.
+- **The cache clock.** One process-wide generation with a 300s TTL works
+  because the dataset is static and there is a single process. Continuous
+  ingest across multiple workers means a shared cache keyed on an ingest
+  watermark rather than a wall clock.
+- **`client_id` becomes a boundary.** It is a filter dimension today
+  ([Assumptions](#assumptions-and-simplifications)). Real multi-tenancy makes
+  it row-level security on the read-only role — not a `WHERE` clause the
+  application is trusted to remember to add.
+
+---
 
 ## Future improvements
 
@@ -539,7 +699,7 @@ I reviewed every file and verified the numbers independently.
 `test_metrics.py` against a value computed from the CSV inside the test, so the
 implementation and the expectation are derived independently. The read-only
 role was confirmed by attempting `INSERT`, `UPDATE` and `DELETE` against it and
-watching all three fail. The 58 tests pass against a real Postgres.
+watching all three fail. The 94 tests pass against a real Postgres.
 
 The application itself uses Claude at runtime for exactly one purpose: choosing
 a tool and filling in its parameters, then writing prose over numbers it did
