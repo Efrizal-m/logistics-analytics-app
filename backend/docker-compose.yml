@@ -60,6 +60,13 @@ services:
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
+      # Read by nginx-proxy / acme-companion on proxy-net: they watch for
+      # these two on any container and auto-generate the vhost + TLS cert,
+      # replacing the manual "point the reverse proxy at logistics-api:8000"
+      # step below. Only takes effect if that's what's actually running on
+      # the host - a different reverse proxy ignores them.
+      VIRTUAL_HOST: logistics-api.efrizal.my.id
+      LETSENCRYPT_HOST: logistics-api.efrizal.my.id
     depends_on:
       db:
         condition: service_healthy
