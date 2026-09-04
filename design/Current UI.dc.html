@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<script src="chart-svg.js"></script>
+<style>
+  body { margin: 0; background: #dcdee1; }
+  a { color: #2f5fd0; }
+  a:hover { color: #24479c; }
+  .rec * { box-sizing: border-box; }
+  .rec h1, .rec h2, .rec h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+  .rec button { font: inherit; cursor: pointer; }
+  .rec code, .rec pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+  .rec summary { cursor: pointer; color: #5c6b7a; font-size: 12px; font-weight: 500; user-select: none; }
+  .rec summary:hover { color: #2f5fd0; }
+  .rec table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  .rec th, .rec td { text-align: left; padding: 7px 12px; border-bottom: 1px solid #e3e6ea; white-space: nowrap; }
+  .rec th { color: #8b98a5; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .rec td.n, .rec th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .rec tbody tr:last-child td { border-bottom: 0; }
+  @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+</style>
+</helmet>
+
+<div style="display:flex; flex-direction:column; gap:64px; padding:48px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; background:#dcdee1;">
+
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <div style="font:600 12px/1 ui-monospace,Menlo,monospace; letter-spacing:0.12em; text-transform:uppercase; color:#4a5560;">Recreation · today's build · 1440</div>
+    <div style="font-size:13px; color:#5c6b7a; max-width:760px;">Transcribed from <code>index.css</code>, <code>App.tsx</code>, <code>Dashboard.tsx</code>, <code>Ask.tsx</code>, <code>KpiCard.tsx</code>, <code>QueryPlanPanel.tsx</code>, <code>ChartRenderer.tsx</code>, <code>ForecastPanel.tsx</code>, <code>DataTable.tsx</code>. Reference only — not a deliverable.</div>
+  </div>
+
+  <!-- ══ BOARD 1 — Dashboard as built ══ -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font:600 11px/1 ui-monospace,Menlo,monospace; letter-spacing:0.1em; text-transform:uppercase; color:#4a5560;">1 · Dashboard</div>
+    <div class="rec" data-screen-label="Today · Dashboard" style="width:1440px; background:#f6f7f9; color:#16202c; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;">
+      <div style="max-width:1180px; margin:0 auto; padding:28px 24px 64px;">
+
+        <header style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; padding-bottom:18px; border-bottom:1px solid #e3e6ea;">
+          <div>
+            <h1 style="font-size:20px;">Logistics Analytics</h1>
+            <p style="margin:4px 0 0; color:#5c6b7a; font-size:13px;">12 metrics over orders from 2025-01-01 to 2025-12-30</p>
+          </div>
+          <div style="display:flex; gap:4px; background:#ffffff; border:1px solid #e3e6ea; border-radius:10px; padding:4px;">
+            <button style="border:0; background:#2f5fd0; color:#fff; padding:7px 16px; border-radius:7px; font-weight:500;">Dashboard</button>
+            <button style="border:0; background:transparent; color:#5c6b7a; padding:7px 16px; border-radius:7px; font-weight:500;">Ask a question</button>
+          </div>
+        </header>
+
+        <section style="margin-top:28px;">
+          <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">Key figures</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px;">
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px; position:relative;">
+              <div style="display:flex; align-items:center; gap:6px; color:#5c6b7a; font-size:12px; font-weight:500;">Total orders<button style="width:15px; height:15px; flex:none; border-radius:50%; border:1px solid #cdd3da; color:#8b98a5; background:transparent; font-size:10px; line-height:1; display:inline-flex; align-items:center; justify-content:center; padding:0;">i</button></div>
+              <div style="font-size:26px; font-weight:600; letter-spacing:-0.02em; margin-top:6px; font-variant-numeric:tabular-nums;">400</div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px; position:relative;">
+              <div style="display:flex; align-items:center; gap:6px; color:#5c6b7a; font-size:12px; font-weight:500;">Delivered orders<button style="width:15px; height:15px; flex:none; border-radius:50%; border:1px solid #cdd3da; color:#8b98a5; background:transparent; font-size:10px; line-height:1; display:inline-flex; align-items:center; justify-content:center; padding:0;">i</button></div>
+              <div style="font-size:26px; font-weight:600; letter-spacing:-0.02em; margin-top:6px; font-variant-numeric:tabular-nums;">304</div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px; position:relative;">
+              <div style="display:flex; align-items:center; gap:6px; color:#5c6b7a; font-size:12px; font-weight:500;">Delayed orders<button style="width:15px; height:15px; flex:none; border-radius:50%; border:1px solid #cdd3da; color:#8b98a5; background:transparent; font-size:10px; line-height:1; display:inline-flex; align-items:center; justify-content:center; padding:0;">i</button></div>
+              <div style="font-size:26px; font-weight:600; letter-spacing:-0.02em; margin-top:6px; font-variant-numeric:tabular-nums;">55</div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px; position:relative;">
+              <div style="display:flex; align-items:center; gap:6px; color:#5c6b7a; font-size:12px; font-weight:500;">On-time delivery rate<button style="width:15px; height:15px; flex:none; border-radius:50%; border:1px solid #2f5fd0; color:#2f5fd0; background:transparent; font-size:10px; line-height:1; display:inline-flex; align-items:center; justify-content:center; padding:0;">i</button></div>
+              <div style="font-size:26px; font-weight:600; letter-spacing:-0.02em; margin-top:6px; font-variant-numeric:tabular-nums;">82.2%</div>
+              <div style="margin-top:2px; font-size:11px; color:#8b98a5; font-variant-numeric:tabular-nums;">over 370 concluded orders</div>
+              <div style="position:absolute; z-index:20; top:40px; left:16px; right:16px; background:#16202c; color:#fff; padding:10px 12px; border-radius:8px; font-size:12px; line-height:1.45; box-shadow:0 8px 20px rgba(16,24,40,.18);">delivered / (delivered + delayed + exception). Orders still in transit or canceled have no outcome and are excluded from the denominator.</div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px; position:relative;">
+              <div style="display:flex; align-items:center; gap:6px; color:#5c6b7a; font-size:12px; font-weight:500;">Average delivery time<button style="width:15px; height:15px; flex:none; border-radius:50%; border:1px solid #cdd3da; color:#8b98a5; background:transparent; font-size:10px; line-height:1; display:inline-flex; align-items:center; justify-content:center; padding:0;">i</button></div>
+              <div style="font-size:26px; font-weight:600; letter-spacing:-0.02em; margin-top:6px; font-variant-numeric:tabular-nums;">3.80 days</div>
+            </div>
+          </div>
+        </section>
+
+        <section style="margin-top:28px;">
+          <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">Charts</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px;">
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px 8px; display:flex; flex-direction:column;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px;">
+                <h3 style="font-size:14px;">Order volume by month</h3>
+                <div style="font-size:11px; color:#8b98a5; text-align:right; max-width:55%;">A line shows a continuous monthly trend better than separated bars.</div>
+              </div>
+              {{ oldVolume }}
+              <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Query plan and data</summary></details>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px 8px; display:flex; flex-direction:column;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px;">
+                <h3 style="font-size:14px;">Delivery outcomes by month</h3>
+                <div style="font-size:11px; color:#8b98a5; text-align:right; max-width:55%;">Three outcomes over the same months compare best as parallel lines.</div>
+              </div>
+              {{ oldOutcomes }}
+              <div style="display:flex; gap:16px; justify-content:center; font-size:12px; padding-top:4px;">
+                <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:14px; height:2px; background:#2f5fd0;"></span>Delivered</span>
+                <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:14px; height:2px; background:#2e7d5b;"></span>Delayed</span>
+                <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:14px; height:2px; background:#b06a10;"></span>Exception</span>
+              </div>
+              <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Query plan and data</summary></details>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px 8px; display:flex; flex-direction:column;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px;">
+                <h3 style="font-size:14px;">Delay rate by carrier</h3>
+                <div style="font-size:11px; color:#8b98a5; text-align:right; max-width:55%;">Nine unordered categories compared on one percentage scale.</div>
+              </div>
+              {{ oldCarrier }}
+              <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Query plan and data</summary></details>
+            </div>
+
+            <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px 8px; display:flex; flex-direction:column;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px;">
+                <h3 style="font-size:14px;">Orders by destination city (top 10)</h3>
+                <div style="font-size:11px; color:#8b98a5; text-align:right; max-width:55%;">Ten long city names read better on a horizontal axis.</div>
+              </div>
+              {{ oldCity }}
+              <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Query plan and data</summary></details>
+            </div>
+          </div>
+        </section>
+
+        <section style="margin-top:28px;">
+          <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">Definitions behind these figures</div>
+          <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px;">
+            <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">How this was calculated</div>
+            <div style="display:grid; grid-template-columns:132px 1fr; gap:8px 16px; font-size:13px;">
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Metrics</div>
+              <div>
+                <span style="display:inline-block; background:#eef3fd; color:#2f5fd0; border-radius:5px; padding:1px 7px; margin:0 5px 4px 0; font-size:12px; font-weight:500;">Total orders</span><span style="display:inline-block; background:#eef3fd; color:#2f5fd0; border-radius:5px; padding:1px 7px; margin:0 5px 4px 0; font-size:12px; font-weight:500;">Delivered orders</span><span style="display:inline-block; background:#eef3fd; color:#2f5fd0; border-radius:5px; padding:1px 7px; margin:0 5px 4px 0; font-size:12px; font-weight:500;">Delayed orders</span><span style="display:inline-block; background:#eef3fd; color:#2f5fd0; border-radius:5px; padding:1px 7px; margin:0 5px 4px 0; font-size:12px; font-weight:500;">On-time delivery rate</span><span style="display:inline-block; background:#eef3fd; color:#2f5fd0; border-radius:5px; padding:1px 7px; margin:0 5px 4px 0; font-size:12px; font-weight:500;">Average delivery time</span>
+              </div>
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Grouped by</div>
+              <div><span style="color:#5c6b7a;">Not grouped — one row for the whole selection</span></div>
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Filters</div>
+              <div><span style="color:#5c6b7a;">None — all orders</span></div>
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Time range</div>
+              <div>2025-01-01 to 2025-12-30<div style="color:#5c6b7a; font-size:12px;">Anchor: dataset bounds</div></div>
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Result</div>
+              <div style="color:#5c6b7a;">1 row · limit 100</div>
+            </div>
+            <div style="margin:14px 0 0; padding:10px 12px; background:#fdf6ec; border-radius:8px; color:#7a4d0c; font-size:12px; line-height:1.5;">
+              <ul style="margin:0; padding-left:16px;">
+                <li>30 of 400 orders have no delivery_date and are excluded from average delivery time.</li>
+                <li>Orders in transit or canceled are excluded from the on-time rate denominator.</li>
+              </ul>
+            </div>
+            <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Metric definitions</summary></details>
+            <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;" open><summary>Generated SQL</summary>
+              <p style="color:#5c6b7a; font-size:12px; margin:8px 0 0;">Built by the query builder from the validated parameters below — the model never writes SQL.</p>
+              <pre style="margin:10px 0 0; padding:12px; background:#f7f8fa; border:1px solid #e3e6ea; border-radius:8px; overflow-x:auto; white-space:pre-wrap; word-break:break-word; color:#2b3a4a;">{{ sql }}</pre>
+            </details>
+            <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Underlying data (1 rows)</summary></details>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BOARD 2 — Ask tab as built ══ -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font:600 11px/1 ui-monospace,Menlo,monospace; letter-spacing:0.1em; text-transform:uppercase; color:#4a5560;">2 · Ask a question, answered</div>
+    <div class="rec" data-screen-label="Today · Ask" style="width:1440px; background:#f6f7f9; color:#16202c; font-size:14px; line-height:1.5;">
+      <div style="max-width:1180px; margin:0 auto; padding:28px 24px 64px;">
+        <header style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; padding-bottom:18px; border-bottom:1px solid #e3e6ea;">
+          <div>
+            <h1 style="font-size:20px;">Logistics Analytics</h1>
+            <p style="margin:4px 0 0; color:#5c6b7a; font-size:13px;">12 metrics over orders from 2025-01-01 to 2025-12-30</p>
+          </div>
+          <div style="display:flex; gap:4px; background:#ffffff; border:1px solid #e3e6ea; border-radius:10px; padding:4px;">
+            <button style="border:0; background:transparent; color:#5c6b7a; padding:7px 16px; border-radius:7px; font-weight:500;">Dashboard</button>
+            <button style="border:0; background:#2f5fd0; color:#fff; padding:7px 16px; border-radius:7px; font-weight:500;">Ask a question</button>
+          </div>
+        </header>
+
+        <section style="margin-top:28px;">
+          <div style="display:flex; gap:10px;">
+            <input value="Which carrier has the highest delay rate?" style="flex:1; font:inherit; padding:12px 14px; border:1px solid #cdd3da; border-radius:10px; background:#fff; color:#16202c;">
+            <button style="padding:12px 22px; border:0; border-radius:10px; background:#2f5fd0; color:#fff; font-weight:600;">Ask</button>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+            <button style="border:1px solid #e3e6ea; background:#fff; color:#5c6b7a; border-radius:999px; padding:6px 13px; font-size:12px;">Show delayed orders by week for the last 3 months</button>
+            <button style="border:1px solid #e3e6ea; background:#fff; color:#5c6b7a; border-radius:999px; padding:6px 13px; font-size:12px;">Which carrier has the highest delay rate?</button>
+            <button style="border:1px solid #e3e6ea; background:#fff; color:#5c6b7a; border-radius:999px; padding:6px 13px; font-size:12px;">How many orders were delivered late last month?</button>
+            <button style="border:1px solid #e3e6ea; background:#fff; color:#5c6b7a; border-radius:999px; padding:6px 13px; font-size:12px;">What is the on-time delivery rate by region?</button>
+            <button style="border:1px solid #e3e6ea; background:#fff; color:#5c6b7a; border-radius:999px; padding:6px 13px; font-size:12px;">Average delivery time by warehouse</button>
+            <button style="border:1px solid #e3e6ea; background:#fff; color:#5c6b7a; border-radius:999px; padding:6px 13px; font-size:12px;">Predict demand for the PENCIL category for the next 4 months</button>
+          </div>
+        </section>
+
+        <section style="margin-top:28px;">
+          <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:18px 20px; font-size:15px; line-height:1.6;">Meridian has the highest delay rate at 24.1%, roughly nine points above the fleet average of 14.9%. Redstone is the most reliable at 7.3%. The comparison covers 370 concluded orders; orders still in transit or canceled are excluded, so a carrier with a small book can move several points on a handful of orders.</div>
+        </section>
+
+        <section style="margin-top:28px;">
+          <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px 8px; display:flex; flex-direction:column;">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px;">
+              <h3 style="font-size:14px;">Delay rate</h3>
+              <div style="font-size:11px; color:#8b98a5; text-align:right; max-width:55%;">Nine unordered categories compared on one percentage scale.</div>
+            </div>
+            {{ oldCarrierWide }}
+          </div>
+        </section>
+
+        <section style="margin-top:28px;">
+          <div style="background:#fff; border:1px solid #e3e6ea; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04); padding:16px 18px;">
+            <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">How this was calculated</div>
+            <div style="display:grid; grid-template-columns:132px 1fr; gap:8px 16px; font-size:13px;">
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Metrics</div>
+              <div><span style="display:inline-block; background:#eef3fd; color:#2f5fd0; border-radius:5px; padding:1px 7px; margin:0 5px 4px 0; font-size:12px; font-weight:500;">Delay rate</span></div>
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Grouped by</div>
+              <div><span style="display:inline-block; background:#f1f3f6; color:#5c6b7a; border-radius:5px; padding:1px 7px; margin:0 5px 4px 0; font-size:12px; font-weight:500;">Carrier</span></div>
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Filters</div>
+              <div><span style="color:#5c6b7a;">None — all orders</span></div>
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Time range</div>
+              <div>2025-01-01 to 2025-12-30<div style="color:#5c6b7a; font-size:12px;">Anchor: dataset bounds</div></div>
+              <div style="color:#8b98a5; font-size:12px; padding-top:1px;">Result</div>
+              <div style="color:#5c6b7a;">9 rows · sorted by delay_rate desc · limit 100</div>
+            </div>
+            <div style="margin:14px 0 0; padding:10px 12px; background:#fdf6ec; border-radius:8px; color:#7a4d0c; font-size:12px; line-height:1.5;">
+              <ul style="margin:0; padding-left:16px;"><li>Carriers with fewer than 20 concluded orders are shown but are volatile.</li></ul>
+            </div>
+            <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Metric definitions</summary></details>
+            <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Generated SQL</summary></details>
+            <details style="margin-top:12px; border-top:1px solid #e3e6ea; padding-top:12px;"><summary>Underlying data (9 rows)</summary></details>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BOARD 3 — API unreachable + loading, as built ══ -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font:600 11px/1 ui-monospace,Menlo,monospace; letter-spacing:0.1em; text-transform:uppercase; color:#4a5560;">3 · API unreachable (three stacked banners) &amp; loading</div>
+    <div style="display:flex; gap:24px; align-items:flex-start;">
+      <div class="rec" data-screen-label="Today · API unreachable" style="width:1180px; background:#f6f7f9; color:#16202c; font-size:14px; line-height:1.5;">
+        <div style="padding:28px 24px 40px;">
+          <header style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding-bottom:18px; border-bottom:1px solid #e3e6ea;">
+            <div>
+              <h1 style="font-size:20px;">Logistics Analytics</h1>
+              <p style="margin:4px 0 0; color:#5c6b7a; font-size:13px;">Loading dataset…</p>
+            </div>
+            <div style="display:flex; gap:4px; background:#ffffff; border:1px solid #e3e6ea; border-radius:10px; padding:4px;">
+              <button style="border:0; background:#2f5fd0; color:#fff; padding:7px 16px; border-radius:7px; font-weight:500;">Dashboard</button>
+              <button style="border:0; background:transparent; color:#5c6b7a; padding:7px 16px; border-radius:7px; font-weight:500;">Ask a question</button>
+            </div>
+          </header>
+          <section style="margin-top:28px;">
+            <div style="padding:12px 16px; border-radius:10px; font-size:13px; background:#fdeeec; border:1px solid #f3cec9; color:#c0392b;">Could not reach the API: Failed to fetch. Check that the backend is running and that VITE_API_BASE_URL points at it.</div>
+          </section>
+          <section style="margin-top:28px;">
+            <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">Key figures</div>
+            <div style="padding:12px 16px; border-radius:10px; font-size:13px; background:#fdeeec; border:1px solid #f3cec9; color:#c0392b;">Failed to fetch</div>
+          </section>
+          <section style="margin-top:28px;">
+            <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">Charts</div>
+            <div style="padding:12px 16px; border-radius:10px; font-size:13px; background:#fdeeec; border:1px solid #f3cec9; color:#c0392b;">Failed to fetch</div>
+          </section>
+        </div>
+      </div>
+
+      <div class="rec" data-screen-label="Today · Loading" style="width:1180px; background:#f6f7f9; color:#16202c; font-size:14px; line-height:1.5;">
+        <div style="padding:28px 24px 40px;">
+          <header style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding-bottom:18px; border-bottom:1px solid #e3e6ea;">
+            <div>
+              <h1 style="font-size:20px;">Logistics Analytics</h1>
+              <p style="margin:4px 0 0; color:#5c6b7a; font-size:13px;">Loading dataset…</p>
+            </div>
+            <div style="display:flex; gap:4px; background:#ffffff; border:1px solid #e3e6ea; border-radius:10px; padding:4px;">
+              <button style="border:0; background:#2f5fd0; color:#fff; padding:7px 16px; border-radius:7px; font-weight:500;">Dashboard</button>
+              <button style="border:0; background:transparent; color:#5c6b7a; padding:7px 16px; border-radius:7px; font-weight:500;">Ask a question</button>
+            </div>
+          </header>
+          <section style="margin-top:28px;">
+            <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">Key figures</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px;">
+              <div style="height:92px; border-radius:10px; background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%); background-size:400% 100%; animation:shimmer 1.3s ease infinite;"></div>
+              <div style="height:92px; border-radius:10px; background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%); background-size:400% 100%; animation:shimmer 1.3s ease infinite;"></div>
+              <div style="height:92px; border-radius:10px; background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%); background-size:400% 100%; animation:shimmer 1.3s ease infinite;"></div>
+              <div style="height:92px; border-radius:10px; background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%); background-size:400% 100%; animation:shimmer 1.3s ease infinite;"></div>
+            </div>
+          </section>
+          <section style="margin-top:28px;">
+            <div style="font-size:12px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#8b98a5; margin-bottom:12px;">Charts</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px;">
+              <div style="height:320px; border-radius:10px; background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%); background-size:400% 100%; animation:shimmer 1.3s ease infinite;"></div>
+              <div style="height:320px; border-radius:10px; background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%); background-size:400% 100%; animation:shimmer 1.3s ease infinite;"></div>
+              <div style="height:320px; border-radius:10px; background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%); background-size:400% 100%; animation:shimmer 1.3s ease infinite;"></div>
+              <div style="height:320px; border-radius:10px; background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%); background-size:400% 100%; animation:shimmer 1.3s ease infinite;"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1540,&quot;height&quot;:1100}}">
+const MONTHS = ["Jan 2025","Feb 2025","Mar 2025","Apr 2025","May 2025","Jun 2025","Jul 2025","Aug 2025","Sep 2025","Oct 2025","Nov 2025","Dec 2025"];
+const VOLUME = [31,28,35,33,36,32,38,34,30,37,33,33];
+const DELIVERED = [24,22,27,25,28,25,29,26,23,28,25,22];
+const DELAYED = [5,4,5,6,5,4,6,5,4,5,3,3];
+const EXCEPTION = [1,1,1,0,1,1,1,1,0,1,1,2];
+const CARRIERS = ["Meridian","Northline","Pacific","Kestrel","Bluewater","Interlink","Vantage","Summit","Redstone"];
+const CARRIER_RATE = [24.1,19.6,17.4,15.8,14.9,13.2,11.5,9.7,7.3];
+const CITIES = ["Chicago","Los Angeles","Houston","Phoenix","Philadelphia","San Antonio","Dallas","San Diego","Austin","Jacksonville"];
+const CITY_ORDERS = [38,34,31,28,26,24,22,19,17,15];
+
+const SQL = `SELECT
+  COUNT(*) AS total_orders,
+  COUNT(*) FILTER (WHERE status = 'delivered') AS delivered_orders,
+  COUNT(*) FILTER (WHERE status = 'delayed') AS delayed_orders,
+  COUNT(*) FILTER (WHERE status = 'delivered')::float
+    / NULLIF(COUNT(*) FILTER (WHERE status IN ('delivered','delayed','exception')), 0)
+    AS on_time_delivery_rate,
+  AVG(delivery_date - order_date) FILTER (WHERE delivery_date IS NOT NULL)
+    AS avg_delivery_days
+FROM orders
+WHERE order_date BETWEEN DATE '2025-01-01' AND DATE '2025-12-30'
+LIMIT 100`;
+
+const OLD = { gridColor: "#eceff3", axisColor: "#8b98a5", fontSize: 11,
+  fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" };
+
+class Component extends DCLogic {
+  state = { ready: !!window.ChartSvg };
+
+  componentDidMount() {
+    if (!window.ChartSvg) {
+      const tick = setInterval(() => {
+        if (window.ChartSvg) { clearInterval(tick); this.setState({ ready: true }); }
+      }, 40);
+      this._tick = tick;
+    }
+  }
+  componentWillUnmount() { clearInterval(this._tick); }
+
+  renderVals() {
+    const C = window.ChartSvg;
+    if (!C) return { sql: SQL };
+    const base = Object.assign({}, OLD);
+
+    return {
+      sql: SQL,
+      oldVolume: C.line(React, Object.assign({}, base, {
+        w: 522, h: 260, x: MONTHS, xTickEvery: 2, yMax: 40,
+        yTicks: [0, 10, 20, 30, 40],
+        series: [{ values: VOLUME, color: "#2f5fd0" }],
+        label: "Order volume by month"
+      })),
+      oldOutcomes: C.line(React, Object.assign({}, base, {
+        w: 522, h: 260, x: MONTHS, xTickEvery: 2, yMax: 30,
+        yTicks: [0, 10, 20, 30],
+        series: [
+          { values: DELIVERED, color: "#2f5fd0" },
+          { values: DELAYED, color: "#2e7d5b" },
+          { values: EXCEPTION, color: "#b06a10" }
+        ],
+        label: "Delivery outcomes by month"
+      })),
+      oldCarrier: C.vbar(React, Object.assign({}, base, {
+        w: 522, h: 260, x: CARRIERS, values: CARRIER_RATE, yMax: 25,
+        yTicks: [0, 5, 10, 15, 20, 25], fmtY: (t) => t + "%",
+        colors: "#2f5fd0", maxBarSize: 46,
+        label: "Delay rate by carrier"
+      })),
+      oldCarrierWide: C.vbar(React, Object.assign({}, base, {
+        w: 1104, h: 300, x: CARRIERS, values: CARRIER_RATE, yMax: 25,
+        yTicks: [0, 5, 10, 15, 20, 25], fmtY: (t) => t + "%",
+        colors: "#2f5fd0", maxBarSize: 46,
+        label: "Delay rate by carrier"
+      })),
+      oldCity: C.hbar(React, Object.assign({}, base, {
+        w: 522, h: 300, labels: CITIES, values: CITY_ORDERS, xMax: 40,
+        xTicks: [0, 10, 20, 30, 40], colors: "#2f5fd0", maxBarSize: 18,
+        label: "Orders by destination city"
+      }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

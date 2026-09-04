@@ -27,11 +27,15 @@ export interface ChartSpec {
   reason: string;
 }
 
+export type MetricDirection = "up" | "down";
+
 export interface MetricInfo {
   key: string;
   label: string;
   definition: string;
   format: MetricFormat;
+  /** Which way is good. Absent when a count is neither good nor bad. */
+  direction: MetricDirection | null;
 }
 
 export interface FilterInfo {
@@ -69,6 +73,7 @@ export interface Kpi {
   format: MetricFormat;
   definition: string;
   sample_size: number | null;
+  direction: MetricDirection | null;
 }
 
 export interface KpisPayload {
