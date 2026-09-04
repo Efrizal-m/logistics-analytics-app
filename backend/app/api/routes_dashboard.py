@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -23,6 +23,7 @@ class KpiResponse(BaseModel):
     format: str
     definition: str
     sample_size: int | None = None
+    direction: Literal["up", "down"] | None = None
 
 
 class KpisPayload(BaseModel):

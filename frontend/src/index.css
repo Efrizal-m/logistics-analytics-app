@@ -1,26 +1,138 @@
-:root {
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --border: #e3e6ea;
-  --border-strong: #cdd3da;
-  --text: #16202c;
-  --text-muted: #5c6b7a;
-  --text-faint: #8b98a5;
-  --accent: #2f5fd0;
-  --accent-soft: #eef3fd;
-  --ok: #2e7d5b;
-  --warn: #b06a10;
-  --bad: #c0392b;
-  --radius: 10px;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.04);
+/* Derived from the Industry design system (steel #5980a6 accent, Barlow
+   Condensed over Barlow, square corners, hairline objects), ported from
+   design/la-tokens.js. Two additions beyond Industry: a semantic amber/red
+   pair and a 6-step categorical ramp, both generated in OKLCH on Industry's
+   own perceptual lightness scale so they sit at the same visual weight as the
+   steel accent.
 
-  /* Categorical series colours, used in that order. */
-  --series-1: #2f5fd0;
-  --series-2: #2e7d5b;
-  --series-3: #b06a10;
-  --series-4: #7b53b8;
-  --series-5: #17868f;
-  --series-6: #c0392b;
+   Divergence from the source: tokens live on :root (and :root[data-theme]),
+   not .la, so body/scrollbar/overscroll follow the theme too. .la stays as
+   the app-shell class carrying the base element rules. */
+
+:root {
+  color-scheme: light;
+
+  --font-h: "Barlow Condensed", system-ui, sans-serif;
+  --font-b: "Barlow", system-ui, sans-serif;
+  --font-m: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Industry's density scale (0.85x). Declared for parity; most spacing in
+     this app is inline px, matching the source artboards. */
+  --s1: 3px;
+  --s2: 7px;
+  --s3: 10px;
+  --s4: 14px;
+  --s5: 17px;
+  --s6: 20px;
+  --s8: 27px;
+  --s10: 34px;
+
+  --r0: 0px; /* objects are square — Industry */
+  --r-sm: 2px;
+
+  --bg: #f2f2f3;
+  --raise: #e9e9ea;
+  --text: #1d1f20;
+  --muted: #5d5d60;
+  --faint: #6e6f71;
+  --line: rgba(29, 31, 32, 0.16);
+  --line-2: rgba(29, 31, 32, 0.3);
+  --hatch: rgba(29, 31, 32, 0.055);
+
+  --accent: #5980a6;
+  --accent-text: #416180;
+  --accent-tint: #e3edf6;
+  --accent-deep: #1d2d3d;
+  --on-accent: #f2f2f3;
+
+  --warn: oklch(0.575 0.095 72);
+  --warn-text: oklch(0.425 0.085 66);
+  --warn-tint: oklch(0.957 0.028 84);
+  --warn-line: oklch(0.845 0.055 80);
+
+  --bad: oklch(0.545 0.145 27);
+  --bad-text: oklch(0.445 0.13 27);
+  --bad-tint: oklch(0.955 0.022 30);
+  --bad-line: oklch(0.855 0.055 28);
+
+  --grid: rgba(29, 31, 32, 0.1);
+  --axis: #6e6f71;
+
+  /* Categorical ramp. Hue AND lightness both step, so the series stay
+     separable under deuteranopia and in greyscale. Steel is series 1. */
+  --chart-1: oklch(0.575 0.062 250);
+  --chart-2: oklch(0.665 0.105 72);
+  --chart-3: oklch(0.45 0.095 288);
+  --chart-4: oklch(0.735 0.068 205);
+  --chart-5: oklch(0.525 0.13 28);
+  --chart-6: oklch(0.375 0.038 250);
+
+  --shadow-sm: 0 1px 2px rgba(43, 43, 45, 0.14);
+  --shadow-md: 0 3px 10px rgba(43, 43, 45, 0.16);
+  --shadow-lg: 0 12px 32px rgba(43, 43, 45, 0.22);
+
+  /* Type scale - named by role, harvested from the artboards' inline styles. */
+  --t-micro: 9.5px; /* kickers, section meta */
+  --t-mono: 10px; /* provenance strip, delta */
+  --t-cap: 10.5px; /* pills, axis text */
+  --t-code: 11.5px; /* pre, mono table cells */
+  --t-sm: 12px; /* card body, table cells */
+  --t-note: 12.5px; /* definition prose */
+  --t-body: 13px;
+  --t-ctl: 13.5px; /* buttons, tabs */
+  --t-lede: 15px; /* answer paragraphs */
+  --t-h3: 17.5px;
+  --t-h2: 21px;
+  --t-h1: 23px;
+  --t-fig: 38px; /* KPI number, desktop */
+  --t-fig-mobile: 34px;
+  --t-fig-sm: 22px; /* forecast stat tile */
+
+  --ctl: 32px; /* every control's height in this design */
+  --ctl-lg: 40px; /* ask input + button */
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #191a1b;
+  --raise: #212324;
+  --text: #ececed;
+  --muted: #a2a3a5;
+  --faint: #86878a;
+  --line: rgba(236, 237, 237, 0.18);
+  --line-2: rgba(236, 237, 237, 0.34);
+  --hatch: rgba(236, 237, 237, 0.05);
+
+  --accent: #7ba3c9;
+  --accent-text: #a8c6e2;
+  --accent-tint: rgba(123, 163, 201, 0.15);
+  --accent-deep: #cfe1f0;
+  --on-accent: #12191f;
+
+  --warn: oklch(0.755 0.1 76);
+  --warn-text: oklch(0.855 0.08 80);
+  --warn-tint: oklch(0.285 0.045 70);
+  --warn-line: oklch(0.415 0.065 74);
+
+  --bad: oklch(0.68 0.145 27);
+  --bad-text: oklch(0.8 0.11 27);
+  --bad-tint: oklch(0.285 0.058 27);
+  --bad-line: oklch(0.42 0.085 27);
+
+  --grid: rgba(236, 237, 237, 0.12);
+  --axis: #86878a;
+
+  --chart-1: oklch(0.68 0.08 250);
+  --chart-2: oklch(0.785 0.11 76);
+  --chart-3: oklch(0.605 0.115 288);
+  --chart-4: oklch(0.845 0.07 205);
+  --chart-5: oklch(0.665 0.135 28);
+  --chart-6: oklch(0.5 0.042 250);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -37,475 +149,499 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
 }
 
-h1,
-h2,
-h3 {
-  margin: 0;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
+/* --- app shell: base element rules, ported from la-tokens.js's .la block -- */
 
-button {
+.la {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-b);
+}
+.la *,
+.la *::before,
+.la *::after {
+  box-sizing: border-box;
+}
+.la :focus {
+  outline: none;
+}
+.la :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.la ::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.la a {
+  color: var(--accent-text);
+  text-underline-offset: 3px;
+}
+.la a:hover {
+  color: var(--accent);
+}
+.la button {
   font: inherit;
   cursor: pointer;
 }
-
-code,
-pre {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 12px;
+.la h1,
+.la h2,
+.la h3,
+.la h4 {
+  margin: 0;
+  font-family: var(--font-h);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.1;
+}
+.la p {
+  margin: 0;
+}
+.la table {
+  border-collapse: collapse;
 }
 
-/* --- layout --------------------------------------------------------------- */
+/* --- layout ---------------------------------------------------------------- */
 
-.app {
+.la-page {
+  width: 100%;
+  font-size: var(--t-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.la-page-inner {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 28px 24px 64px;
+  padding: 22px 24px 56px;
+}
+@media (max-width: 640px) {
+  .la-page-inner {
+    padding: 16px 14px 40px;
+  }
 }
 
-.masthead {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
+.la-sec {
+  margin-top: 24px;
 }
-
-.masthead h1 {
-  font-size: 20px;
-}
-
-.masthead p {
-  margin: 4px 0 0;
-  color: var(--text-muted);
-  font-size: 13px;
-}
-
-.tabs {
-  display: flex;
-  gap: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 4px;
-}
-
-.tabs button {
-  border: 0;
-  background: transparent;
-  color: var(--text-muted);
-  padding: 7px 16px;
-  border-radius: 7px;
-  font-weight: 500;
-}
-
-.tabs button[aria-selected="true"] {
-  background: var(--accent);
-  color: #fff;
-}
-
-section {
-  margin-top: 28px;
-}
-
-.section-title {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  margin-bottom: 12px;
-}
-
-/* --- cards ---------------------------------------------------------------- */
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 12px;
-}
-
-.kpi {
-  padding: 16px 18px;
-  position: relative;
-}
-
-.kpi-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.kpi-value {
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  margin-top: 6px;
-  font-variant-numeric: tabular-nums;
-}
-
-.kpi-sample {
-  margin-top: 2px;
-  font-size: 11px;
-  color: var(--text-faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.info {
-  width: 15px;
-  height: 15px;
-  flex: none;
-  border-radius: 50%;
-  border: 1px solid var(--border-strong);
-  color: var(--text-faint);
-  background: transparent;
-  font-size: 10px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.info:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.tooltip {
-  position: absolute;
-  z-index: 20;
-  top: 40px;
-  left: 16px;
-  right: 16px;
-  background: var(--text);
-  color: #fff;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  line-height: 1.45;
-  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.18);
-}
-
-/* --- charts --------------------------------------------------------------- */
-
-.chart-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 16px;
-}
-
-.chart-card {
-  padding: 16px 18px 8px;
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-head {
+.la-sec-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
-.chart-head h3 {
-  font-size: 14px;
+/* --- helper classes, verbatim from la-tokens.js ---------------------------- */
+
+/* Registration marks — Industry's blueprint frame. */
+.la-bp {
+  position: relative;
 }
-
-.chart-why {
-  font-size: 11px;
-  color: var(--text-faint);
-  text-align: right;
-  max-width: 55%;
+.la-bp > i.c {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  color: var(--line-2);
+  pointer-events: none;
 }
-
-/* --- ask ------------------------------------------------------------------ */
-
-.ask-form {
-  display: flex;
-  gap: 10px;
+.la-bp > i.c::before,
+.la-bp > i.c::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
 }
-
-.ask-form input {
-  flex: 1;
-  font: inherit;
-  padding: 12px 14px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text);
+.la-bp > i.c::before {
+  left: 5px;
+  top: 0;
+  width: 1px;
+  height: 100%;
 }
-
-.ask-form input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
-  border-color: transparent;
-}
-
-.ask-form button {
-  padding: 12px 22px;
-  border: 0;
-  border-radius: var(--radius);
-  background: var(--accent);
-  color: #fff;
-  font-weight: 600;
-}
-
-.ask-form button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.examples {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.examples button {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-muted);
-  border-radius: 999px;
-  padding: 6px 13px;
-  font-size: 12px;
-}
-
-.examples button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.answer {
-  padding: 18px 20px;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.answer.unsupported {
-  border-left: 3px solid var(--warn);
-}
-
-.banner {
-  padding: 12px 16px;
-  border-radius: var(--radius);
-  font-size: 13px;
-  border: 1px solid transparent;
-}
-
-.banner.warn {
-  background: #fdf6ec;
-  border-color: #f0dfc0;
-  color: var(--warn);
-}
-
-.banner.error {
-  background: #fdeeec;
-  border-color: #f3cec9;
-  color: var(--bad);
-}
-
-.banner.info {
-  background: var(--accent-soft);
-  border-color: #d6e2fa;
-  color: var(--accent);
-}
-
-/* --- plan panel ----------------------------------------------------------- */
-
-.plan {
-  padding: 16px 18px;
-}
-
-.plan-grid {
-  display: grid;
-  grid-template-columns: 132px 1fr;
-  gap: 8px 16px;
-  font-size: 13px;
-}
-
-.plan-key {
-  color: var(--text-faint);
-  font-size: 12px;
-  padding-top: 1px;
-}
-
-.pill {
-  display: inline-block;
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-radius: 5px;
-  padding: 1px 7px;
-  margin: 0 5px 4px 0;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.pill.plain {
-  background: #f1f3f6;
-  color: var(--text-muted);
-}
-
-.notes {
-  margin: 14px 0 0;
-  padding: 10px 12px;
-  background: #fdf6ec;
-  border-radius: 8px;
-  color: #7a4d0c;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.notes ul {
-  margin: 0;
-  padding-left: 16px;
-}
-
-details {
-  margin-top: 12px;
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
-}
-
-summary {
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 500;
-  user-select: none;
-}
-
-summary:hover {
-  color: var(--accent);
-}
-
-pre.sql {
-  margin: 10px 0 0;
-  padding: 12px;
-  background: #f7f8fa;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: #2b3a4a;
-}
-
-/* --- table ---------------------------------------------------------------- */
-
-.table-wrap {
-  overflow-x: auto;
-  margin-top: 10px;
-}
-
-table {
-  border-collapse: collapse;
+.la-bp > i.c::after {
+  top: 5px;
+  left: 0;
   width: 100%;
-  font-size: 13px;
+  height: 1px;
+}
+.la-bp > i.tl {
+  top: -6px;
+  left: -6px;
+}
+.la-bp > i.tr {
+  top: -6px;
+  right: -6px;
+}
+.la-bp > i.bl {
+  bottom: -6px;
+  left: -6px;
+}
+.la-bp > i.br {
+  bottom: -6px;
+  right: -6px;
 }
 
-th,
-td {
-  text-align: left;
-  padding: 7px 12px;
-  border-bottom: 1px solid var(--border);
+/* KPI band: separators switch from vertical to horizontal on the band's own
+   width, so the same markup serves 1600px and 360px. */
+.la-kpiband {
+  container-type: inline-size;
+}
+@container (min-width: 400px) {
+  .la-kpicell + .la-kpicell {
+    border-left: 1px solid var(--line);
+  }
+}
+
+/* Hatched fill — pending and excluded regions, never a decorative texture. */
+.la-hatch {
+  background-image: repeating-linear-gradient(45deg, var(--line) 0 1px, transparent 1px 6px);
+}
+
+/* Provenance strip: the one hover the audit surface needs. */
+.la-strip:hover {
+  background: var(--accent-tint);
+}
+.la-strip:hover .la-cta {
+  color: var(--accent-text);
+}
+.la-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.la-ibtn:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.la-rowh:hover {
+  background: var(--hatch);
+}
+.la-tab:hover:not([aria-current="page"]) {
+  background: var(--hatch);
+}
+
+@keyframes la-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* --- repeating shapes -------------------------------------------------------
+   A value that repeats or carries state becomes a class here; a value that is
+   a function of data or viewport variant stays inline in the component. */
+
+.la-kicker {
+  font-family: var(--font-m);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.la-meta {
+  font-family: var(--font-m);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-th {
-  color: var(--text-faint);
-  font-weight: 600;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.la-num {
+  font-family: var(--font-m);
+  font-variant-numeric: tabular-nums;
 }
 
-td.numeric,
-th.numeric {
+.la-card {
+  border: 1px solid var(--line-2);
+}
+
+.la-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--ctl);
+  padding: 0 15px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-size: var(--t-ctl);
+  letter-spacing: 0.03em;
+}
+.la-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.la-btn--primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.la-pill {
+  display: inline-block;
+  font-family: var(--font-m);
+  font-size: var(--t-cap);
+  line-height: 1.3;
+  padding: 2px 7px;
+  border: 1px solid var(--line-2);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.la-pill--accent {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.la-sheet-row {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 14px;
+  padding: 7px 0;
+  align-items: start;
+}
+.la-sheet-row + .la-sheet-row {
+  border-top: 1px solid var(--line);
+}
+.la-sheet-key {
+  font-family: var(--font-m);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding-top: 3px;
+}
+
+.la-caveat {
+  border: 1px solid var(--warn-line);
+  background: var(--warn-tint);
+  padding: 9px 11px 10px;
+}
+.la-caveat-title {
+  font-family: var(--font-m);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warn-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.la-caveat-mark {
+  width: 5px;
+  height: 5px;
+  background: var(--warn);
+  display: block;
+  flex: none;
+}
+.la-caveat ul {
+  margin: 6px 0 0;
+  padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.la-caveat li {
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: var(--warn-text);
+}
+
+.la-pre {
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  background: var(--raise);
+  border: 1px solid var(--line);
+  font-family: var(--font-m);
+  font-size: var(--t-code);
+  line-height: 1.65;
+  color: var(--text);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.la-table {
+  width: 100%;
+  font-size: var(--t-sm);
+}
+.la-table th {
+  text-align: left;
+  font-family: var(--font-m);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 7px 12px 7px 0;
+  border-bottom: 1px solid var(--line-2);
+  white-space: nowrap;
+}
+.la-table th.n {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-
-tbody tr:last-child td {
-  border-bottom: 0;
+.la-table td {
+  padding: 6px 12px 6px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  font-size: var(--t-sm);
+  color: var(--text);
 }
-
-/* --- forecast ------------------------------------------------------------- */
-
-.forecast-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.stat {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.stat-value {
-  font-size: 18px;
-  font-weight: 600;
-  margin-top: 2px;
+.la-table td.n {
+  text-align: right;
+  font-family: var(--font-m);
+  font-size: var(--t-code);
   font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
-.muted {
-  color: var(--text-muted);
+.la-stat {
+  border: 1px solid var(--line);
+  padding: 9px 11px 10px;
+}
+.la-stat-label {
+  font-family: var(--font-m);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.la-stat-value {
+  margin-top: 3px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.la-stat-num {
+  font-family: var(--font-m);
+  font-size: var(--t-fig-sm);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1;
+}
+.la-stat-unit {
+  font-family: var(--font-m);
+  font-size: var(--t-mono);
+  color: var(--muted);
 }
 
-.small {
-  font-size: 12px;
+.la-kpicell {
+  border-top: 1px solid var(--line-2);
+  padding: 12px 15px 11px;
+  display: flex;
+  flex-direction: column;
 }
 
-.skeleton {
-  height: 92px;
-  border-radius: var(--radius);
-  background: linear-gradient(90deg, #eef0f3 25%, #f6f7f9 37%, #eef0f3 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.3s ease infinite;
+.la-defband {
+  border-bottom: 1px solid var(--line-2);
+  background: var(--accent-tint);
+  padding: 11px 15px 12px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0 50%;
-  }
+.la-answer p {
+  font-size: var(--t-lede);
+  line-height: 1.6;
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+.la-chip {
+  min-height: var(--ctl);
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--t-sm);
+  text-align: left;
+}
+.la-chip--accent {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.la-ibtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--muted);
+}
+
+.la-tab {
+  min-height: var(--ctl);
+  padding: 0 15px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-size: var(--t-ctl);
+  letter-spacing: 0.03em;
+}
+.la-tab[aria-current="page"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.la-strip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: var(--ctl);
+  padding: 0 14px;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line-2);
+  text-align: left;
+  color: var(--muted);
+}
+.la-strip-sign {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  flex: none;
+  border: 1px solid var(--line-2);
+  font-family: var(--font-m);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--accent-text);
+}
+.la-cta {
+  margin-left: auto;
+  font-family: var(--font-m);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.la-skel {
+  color: var(--line-2);
+}
+
+/* Recharts' <svg> clips at its own declared width/height by default. Rotated
+   axis ticks and bar value labels are drawn deliberately outside the nominal
+   plot rect (see charts/config.ts's rotation angles) - the design's own raw
+   SVG implementation sets the same override for the same reason. Without
+   this, a long rotated tick label gets its lower portion sliced off. */
+.recharts-surface {
+  overflow: visible;
 }

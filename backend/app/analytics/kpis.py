@@ -9,7 +9,7 @@ the dashboard is as explainable as the ask endpoint.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from sqlalchemy.orm import Session
 
@@ -37,6 +37,7 @@ class Kpi:
     format: str
     definition: str
     sample_size: int | None = None
+    direction: Literal["up", "down"] | None = None
 
 
 def compute_kpis(session: Session) -> tuple[list[Kpi], QueryPlan]:
@@ -55,6 +56,7 @@ def compute_kpis(session: Session) -> tuple[list[Kpi], QueryPlan]:
             definition=METRICS[metric].definition,
             # Only rate metrics have a denominator worth showing.
             sample_size=sample_size if METRICS[metric].is_ratio else None,
+            direction=METRICS[metric].direction,
         )
         for metric in KPI_METRICS
     ]
@@ -90,13 +92,30 @@ PRESET_CHARTS: dict[str, tuple[str, QuerySpec]] = {
     ),
 }
 
+#: Presets that exist to source other UI surfaces, not to be drawn as their own
+#: dashboard chart card. Kept separate from PRESET_CHARTS so /api/charts keeps
+#: meaning exactly what it says - "the charts the dashboard draws" - rather
+#: than every reusable query the frontend happens to run.
+INTERNAL_PRESETS: dict[str, tuple[str, QuerySpec]] = {
+    "kpi_trends": (
+        "Key figures by month",
+        # All five KPI metrics is 5 of the 6 QuerySpec allows, so this is one
+        # ordinary validated query - not a new endpoint or a new SQL shape. It
+        # exists to source the KPI band's sparklines with the same auditability
+        # (its own QueryPlan) as every other number on the page.
+        QuerySpec(metrics=KPI_METRICS, group_by=[Dimension.month]),
+    ),
+}
+
+_ALL_PRESETS: dict[str, tuple[str, QuerySpec]] = {**PRESET_CHARTS, **INTERNAL_PRESETS}
+
 
 def compute_preset_chart(
     session: Session, name: str
 ) -> tuple[str, list[dict[str, Any]], ChartSpec, QueryPlan]:
-    if name not in PRESET_CHARTS:
+    if name not in _ALL_PRESETS:
         raise KeyError(name)
-    title, spec = PRESET_CHARTS[name]
+    title, spec = _ALL_PRESETS[name]
     _, max_date = get_dataset_bounds(session)
     rows, plan = execute(session, build_query(spec, max_date))
     return title, rows, select_chart(spec, rows), plan
